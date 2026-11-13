@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #05 - Slider & Estados CSS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-carbon: #0a0a0d;
+            --surface: #131318;
+            --surface-alt: #1b1b22;
+            --border-dim: #2a2a35;
+            --blaze: #ff5e1a;
+            --blaze-glow: rgba(255, 94, 26, 0.4);
+            --amber: #ffaa00;
+            --mint: #00e676;
+            --mint-glow: rgba(0, 230, 118, 0.3);
+            --crimson: #ff1744;
+            --crimson-glow: rgba(255, 23, 68, 0.3);
+            --text-main: #f4f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-carbon);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(255, 94, 26, 0.14) 0%, transparent 55%),
+                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 10px);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px 70px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(19, 19, 24, 0.94);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-dim);
+            border-top: 4px solid var(--blaze);
+            border-radius: 18px;
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(255, 94, 26, 0.08);
+            position: relative;
+        }
+
+        /* Cabeçalho Estilo Telemetria */
+        .telemetry-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-dim);
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .tag-modulo {
+            background: rgba(255, 94, 26, 0.15);
+            color: var(--blaze);
+            border: 1px solid var(--blaze);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-live {
+            color: var(--amber);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-live::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--blaze);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--blaze);
+            animation: pulseDot 1.2s infinite alternate;
+        }
+
+        @keyframes pulseDot {
+            from { transform: scale(0.85); opacity: 0.5; }
+            to { transform: scale(1.25); opacity: 1; }
+        }
+
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 2.45rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #ffffff 15%, var(--amber) 55%, var(--blaze) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+            max-width: 610px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Barra de Progresso Segmentada (6 Células de Energia) */
+        .segments-wrapper {
+            background: #0d0d11;
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 14px;
+            z-index: 100;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .segments-header {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .segments-header span#seg-count {
+            color: var(--blaze);
+        }
+
+        .segments-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .seg-cell {
+            height: 8px;
+            background: #23232e;
+            border-radius: 3px;
+            transform: skewX(-18deg);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .seg-cell.filled {
+            background: linear-gradient(90deg, var(--blaze), var(--amber));
+            box-shadow: 0 0 12px var(--blaze-glow);
+        }
+
+        /* Animações dos Cards */
+        @keyframes cardDrop {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes successZoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--surface-alt);
+            border: 1px solid var(--border-dim);
+            border-left: 5px solid var(--blaze);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.28s ease;
+            opacity: 0;
+            animation: cardDrop 0.5s ease forwards;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.07s; }
+        .pergunta:nth-child(2) { animation-delay: 0.14s; }
+        .pergunta:nth-child(3) { animation-delay: 0.21s; }
+        .pergunta:nth-child(4) { animation-delay: 0.28s; }
+        .pergunta:nth-child(5) { animation-delay: 0.35s; }
+        .pergunta:nth-child(6) { animation-delay: 0.42s; }
+
+        .pergunta:hover {
+            border-color: rgba(255, 94, 26, 0.55);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--mint);
+            border-left-color: var(--mint);
+            box-shadow: 0 0 22px var(--mint-glow);
+            animation: successZoom 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--crimson);
+            border-left-color: var(--crimson);
+            box-shadow: 0 0 22px var(--crimson-glow);
+            animation: errorShake 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--amber);
+            border-left-color: var(--amber);
+        }
+
+        .enunciado {
+            font-size: 1.12rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 94, 26, 0.14);
+            color: #ff9e6d;
+            border: 1px solid rgba(255, 94, 26, 0.3);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.88em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #121217;
+            border: 1px solid #292933;
+            padding: 13px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
+        label.opcao:hover {
+            background: #202029;
+            border-color: var(--blaze);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--blaze);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Editor de Código */
+        .code-pad {
+            background: #08080a;
+            border: 1px solid #2c2c38;
+            border-radius: 10px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.93rem;
+            line-height: 1.9;
+            color: #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .pad-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid #1f1f29;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .c-sel { color: #ff7b47; }
+        .c-prop { color: #93c5fd; }
+        .c-val { color: #fcd34d; }
+        .c-com { color: #6b7280; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #181820;
+            border: 2px dashed var(--blaze);
+            color: var(--amber);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.93rem;
+            font-weight: 700;
+            width: 115px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--amber);
+            background: #22222e;
+            box-shadow: 0 0 14px var(--blaze-glow);
+            color: #ffffff;
+        }
+
+        /* Botão Principal */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-ignite {
+            background: linear-gradient(135deg, var(--blaze), var(--amber));
+            color: #0a0a0d;
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 28px var(--blaze-glow);
+            transition: all 0.28s ease;
+        }
+
+        .btn-ignite:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 36px rgba(255, 170, 0, 0.55);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(0, 230, 118, 0.12);
+            color: #69f0ae;
+            border: 1px solid rgba(0, 230, 118, 0.35);
+        }
+
+        .errado {
+            background: rgba(255, 23, 68, 0.12);
+            color: #ff8a80;
+            border: 1px solid rgba(255, 23, 68, 0.35);
+        }
+
+        .neutro {
+            background: rgba(255, 170, 0, 0.12);
+            color: #ffd54f;
+            border: 1px solid rgba(255, 170, 0, 0.35);
+        }
+
+        /* Resultado Final */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #1b1b24, #101015);
+            border: 2px solid var(--blaze);
+            text-align: center;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 35px var(--blaze-glow);
+            animation: cardDrop 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #0d0d11;
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--amber);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #1b1b22;
+            color: var(--amber);
+            border: 1px solid var(--amber);
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--amber);
+            color: #0a0a0d;
+        }
+
+        #embers-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.85rem; }
+            .telemetry-top { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="embers-canvas"></canvas>
+
+    <div class="container">
+        <div class="telemetry-top">
+            <span class="tag-modulo">⚡ Módulo 05 // UI Interativa</span>
+            <span class="status-live">SLIDER & ESTADOS ATIVOS</span>
+        </div>
+
+        <header class="quiz-header">
+            <h1>Slider de Feedbacks & CSS States</h1>
+            <p class="subtitulo">
+                Mostre que você entendeu como esconder e revelar depoimentos com a classe <code>.active</code>, usar atributos <code>data-*</code> e animar os controles!
+            </p>
+        </header>
+
+        <!-- Barra Segmentada -->
+        <div class="segments-wrapper">
+            <div class="segments-header">
+                <span>Carga do Sistema</span>
+                <span id="seg-count">0 / 6 PRONTAS</span>
+            </div>
+            <div class="segments-grid">
+                <div class="seg-cell" id="seg-1"></div>
+                <div class="seg-cell" id="seg-2"></div>
+                <div class="seg-cell" id="seg-3"></div>
+                <div class="seg-cell" id="seg-4"></div>
+                <div class="seg-cell" id="seg-5"></div>
+                <div class="seg-cell" id="seg-6"></div>
+            </div>
+        </div>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🎯 No CSS, escrevemos <code>.feedback-client.active</code> com as duas classes <strong>coladas sem espaço</strong> entre elas. Qual é a diferença disso para quando colocamos um espaço?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Sem espaço, o CSS aplica o estilo apenas no elemento que possui <strong>as duas classes ao mesmo tempo</strong> (<code>class="feedback-client active"</code>).</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Não faz diferença nenhuma; o navegador lê com ou sem espaço do mesmo jeito.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Sem espaço, o CSS procura uma tag <code>&lt;active&gt;</code> dentro do parágrafo.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Serve para apagar a primeira classe e deixar só a segunda funcionando.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 👻 [DESAFIO DE CÓDIGO] Para que os 3 depoimentos não apareçam empilhados de uma vez na tela, todos começam escondidos e só o <code>.active</code> ganha <code>display: block;</code>. Complete o valor que esconde os cards inativos:</p>
+                <div class="code-pad">
+                    <div class="pad-header">
+                        <span>style.css — Controle de Visibilidade</span>
+                        <span>CSS3</span>
+                    </div>
+                    <span class="c-sel">.feedback-client</span> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">display</span>: <input type="text" class="code-input" id="q2_input" placeholder="valor" autocomplete="off">; <span class="c-com">/* Oculta os depoimentos inativos */</span><br>
+                    }<br><br>
+                    <span class="c-sel">.feedback-client.active</span> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">display</span>: <span class="c-val">block</span>;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🔢 Nos botões de navegação do slider, colocamos <code>data-slide="0"</code>, <code>data-slide="1"</code> e <code>data-slide="2"</code>. Por que usamos o prefixo <code>data-</code> e começamos a contar do <code>0</code>?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Porque o HTML5 exige que todo <code>&lt;button&gt;</code> tenha um número de série para funcionar.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Atributos <code>data-*</code> guardam informações personalizadas para o JavaScript ler qual slide abrir, e começam em <code>0</code> porque listas (arrays) em JS contam a partir do zero.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> O <code>data-slide="0"</code> serve para deixar o primeiro botão invisível na tela.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Define quantos segundos cada slide vai demorar para carregar.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 📦 Na caixa principal <code>.feedback-slider</code>, definimos <code>max-width: 800px;</code> e <code>overflow: hidden;</code>. Qual é o papel do <code>overflow: hidden;</code> nesse container?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Esconde completamente o slider inteiro quando o site é aberto no computador.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Corta e esconde qualquer conteúdo ou movimento de transição que ultrapasse os limites da caixa, evitando barras de rolagem indesejadas.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Transforma os depoimentos em uma galeria com barra de rolagem horizontal.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Centraliza o texto do depoimento automaticamente.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 🔍 [DESAFIO DE CÓDIGO] Na bolinha ativa (<code>.slider-btn.active</code>), além de mudar a cor de fundo, aumentamos o tamanho dela em 20% usando a propriedade <code>transform</code>. Complete a função CSS abaixo:</p>
+                <div class="code-pad">
+                    <div class="pad-header">
+                        <span>style.css — Bolinha Ativa do Slider</span>
+                        <span>CSS3</span>
+                    </div>
+                    <span class="c-sel">.slider-btn.active</span> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">background-color</span>: <span class="c-val">var(--primary)</span>;<br>
+                    &nbsp;&nbsp;<span class="c-prop">transform</span>: <input type="text" class="code-input" id="q5_input" placeholder="função" autocomplete="off">(<span class="c-val">1.2</span>); <span class="c-com">/* Aumenta 20% */</span><br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) ✨ Quando um depoimento ganha a classe <code>.active</code>, disparamos <code>animation: fadeIn 0.5s ease;</code>. Para essa transição suave de surgimento funcionar, o que precisa existir no CSS?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Uma regra <code>@keyframes fadeIn</code> definindo a mudança de <code>opacity: 0</code> para <code>opacity: 1</code>.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Um link externo no HTML importando a biblioteca de animações do Google.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Basta escrever a palavra <code>fadeIn</code> que todo navegador já sabe o que fazer sem precisar programar.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> Uma tag <code>&lt;animate&gt;</code> envolta de cada depoimento no HTML.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-ignite" onclick="corrigir()">🔥 Testar Slider & Ver Score</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        // Atualiza os 6 segmentos de progresso
+        function atualizarSegmentos() {
+            const status = [
+                !!document.querySelector('input[name="q1"]:checked'),
+                document.getElementById("q2_input").value.trim() !== "",
+                !!document.querySelector('input[name="q3"]:checked'),
+                !!document.querySelector('input[name="q4"]:checked'),
+                document.getElementById("q5_input").value.trim() !== "",
+                !!document.querySelector('input[name="q6"]:checked')
+            ];
+
+            let prontas = 0;
+            status.forEach((ok, idx) => {
+                const cell = document.getElementById("seg-" + (idx + 1));
+                if (ok) {
+                    cell.classList.add("filled");
+                    prontas++;
+                } else {
+                    cell.classList.remove("filled");
+                }
+            });
+
+            document.getElementById("seg-count").textContent = `${prontas} / 6 PRONTAS`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarSegmentos);
+        document.getElementById("quizForm").addEventListener("input", atualizarSegmentos);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "none" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "radio", resposta: "b" },
+                q5: { tipo: "text",  resposta: "scale" },
+                q6: { tipo: "radio", resposta: "a" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(/[();]/g, "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Slide travado!</b> Você deixou essa questão sem resposta.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Transição perfeita!</b> Você acertou em cheio.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Bug na animação!</b> A resposta certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>Comando incorreto!</b> O código exato era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🔥 UI ENGINEER ELITE! (${pontos}/${total})<br><span style="font-family:'Inter',sans-serif; font-size:1rem; color:#ffaa00;">100% de precisão! Você domina estados CSS e sliders dinâmicos.</span>`;
+                dispararFaiscas();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `⚡ PERFORMANCE SÓLIDA! (${pontos}/${total})<br><span style="font-family:'Inter',sans-serif; font-size:1rem; color:#9ca3af;">Mandou bem! Ajuste os poucos detalhes marcados acima para gabaritar.</span>`;
+                dispararFaiscas();
+            } else {
+                areaResultado.innerHTML = `🛠️ AJUSTE DE MOTOR (${pontos}/${total})<br><span style="font-family:'Inter',sans-serif; font-size:1rem; color:#ff8a80;">Confira os feedbacks em vermelho acima, corrija e rode o teste novamente!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial: Faíscas incandescentes subindo
+        function dispararFaiscas() {
+            const canvas = document.getElementById("embers-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#ff5e1a", "#ffaa00", "#00e676", "#ffffff", "#ff3d00"];
+            const faiscas = [];
+
+            for (let i = 0; i < 95; i++) {
+                faiscas.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + Math.random() * 120,
+                    size: Math.random() * 4.5 + 2,
+                    color: cores[Math.floor(Math.random() * cores.length)],
+                    vy: -(Math.random() * 6 + 3),
+                    vx: (Math.random() - 0.5) * 3,
+                    alpha: 1
+                });
+            }
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let vivas = false;
+
+                faiscas.forEach(f => {
+                    if (f.alpha > 0) {
+                        vivas = true;
+                        f.y += f.vy;
+                        f.x += f.vx + Math.sin(f.y * 0.03) * 0.8;
+                        f.alpha -= 0.011;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, f.alpha);
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = f.color;
+                        ctx.fillStyle = f.color;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+
+                if (vivas) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>

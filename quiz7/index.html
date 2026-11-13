@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #07 - Formulários, Grid & Maps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #040b09;
+            --surface: #0a1714;
+            --card-bg: #0f211c;
+            --card-hover: #142b25;
+            --border-subtle: rgba(37, 211, 102, 0.22);
+            --wa-green: #25D366;
+            --wa-glow: rgba(37, 211, 102, 0.4);
+            --teal: #2dd4bf;
+            --teal-glow: rgba(45, 212, 191, 0.35);
+            --danger: #fb7185;
+            --danger-glow: rgba(251, 113, 133, 0.35);
+            --amber: #fbbf24;
+            --text-main: #f0fdf4;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 85% 15%, rgba(37, 211, 102, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 15% 85%, rgba(45, 212, 191, 0.12) 0%, transparent 45%),
+                linear-gradient(rgba(37, 211, 102, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 211, 102, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px 75px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 810px;
+            margin: 0 auto;
+            background: rgba(10, 23, 20, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.78), 0 0 40px rgba(37, 211, 102, 0.08);
+            position: relative;
+        }
+
+        /* Barra Superior com Anel Circular SVG */
+        .top-dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #06100d;
+            border: 1px solid rgba(37, 211, 102, 0.25);
+            border-radius: 16px;
+            padding: 12px 20px;
+            margin-bottom: 28px;
+            position: sticky;
+            top: 14px;
+            z-index: 100;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+        }
+
+        .signal-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--wa-green);
+        }
+
+        .radar-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--wa-green);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .radar-dot::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--wa-green);
+            animation: radarPing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes radarPing {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2.3); opacity: 0; }
+        }
+
+        .ring-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ring-label {
+            text-align: right;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .ring-label span {
+            display: block;
+            color: var(--teal);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #17332b;
+            stroke-width: 4;
+        }
+
+        .ring-fill {
+            fill: none;
+            stroke: var(--wa-green);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 113.1; /* 2 * PI * 18 */
+            stroke-dashoffset: 113.1;
+            transition: stroke-dashoffset 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Cabeçalho */
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.35rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff 15%, var(--teal) 55%, var(--wa-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.03rem;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.55;
+        }
+
+        /* Animações dos Cards */
+        @keyframes cardFloatIn {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shakeAlert {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes popVerified {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--card-bg);
+            border: 1px solid rgba(37, 211, 102, 0.16);
+            border-left: 5px solid var(--wa-green);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.28s ease;
+            opacity: 0;
+            animation: cardFloatIn 0.55s ease forwards;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.06s; }
+        .pergunta:nth-child(2) { animation-delay: 0.12s; }
+        .pergunta:nth-child(3) { animation-delay: 0.18s; }
+        .pergunta:nth-child(4) { animation-delay: 0.24s; }
+        .pergunta:nth-child(5) { animation-delay: 0.30s; }
+        .pergunta:nth-child(6) { animation-delay: 0.36s; }
+
+        .pergunta:hover {
+            border-color: rgba(45, 212, 191, 0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--wa-green);
+            border-left-color: var(--wa-green);
+            box-shadow: 0 0 24px var(--wa-glow);
+            animation: popVerified 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--danger);
+            border-left-color: var(--danger);
+            box-shadow: 0 0 24px var(--danger-glow);
+            animation: shakeAlert 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--amber);
+            border-left-color: var(--amber);
+        }
+
+        .enunciado {
+            font-size: 1.12rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(37, 211, 102, 0.13);
+            color: #6ee7b7;
+            border: 1px solid rgba(37, 211, 102, 0.28);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.88em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #091411;
+            border: 1px solid #1a3830;
+            padding: 13px 16px;
+            border-radius: 11px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
+        label.opcao:hover {
+            background: #122923;
+            border-color: var(--wa-green);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--wa-green);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Bloco HTML para Completar Código */
+        .html-box {
+            background: #040908;
+            border: 1px solid #1b3b32;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            line-height: 1.95;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--teal);
+            border-bottom: 1px solid #122922;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .t-tag { color: #2dd4bf; }
+        .t-attr { color: #86efac; }
+        .t-str { color: #fde047; }
+        .t-com { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0e211c;
+            border: 2px dashed var(--wa-green);
+            color: var(--amber);
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            width: 100px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--teal);
+            background: #143029;
+            box-shadow: 0 0 14px var(--wa-glow);
+            color: #ffffff;
+        }
+
+        /* Botão Principal */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, var(--wa-green), var(--teal));
+            color: #040b09;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.22rem;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px var(--wa-glow);
+            transition: all 0.28s ease;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 38px rgba(45, 212, 191, 0.55);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(37, 211, 102, 0.14);
+            color: #86efac;
+            border: 1px solid rgba(37, 211, 102, 0.35);
+        }
+
+        .errado {
+            background: rgba(251, 113, 133, 0.14);
+            color: #fda4af;
+            border: 1px solid rgba(251, 113, 133, 0.35);
+        }
+
+        .neutro {
+            background: rgba(251, 191, 36, 0.14);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        /* Resultado Final */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #10241e, #07120f);
+            border: 2px solid var(--wa-green);
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 35px var(--wa-glow);
+            animation: cardFloatIn 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #06100d;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--wa-green);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #0f211c;
+            color: var(--wa-green);
+            border: 1px solid var(--wa-green);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--wa-green);
+            color: #040b09;
+        }
+
+        #signal-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.85rem; }
+            .top-dashboard { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="signal-canvas"></canvas>
+
+    <div class="container">
+        <!-- Painel Superior com Anel Circular -->
+        <div class="top-dashboard">
+            <div class="signal-badge">
+                <span class="radar-dot"></span>
+                <span>MÓDULO 07 // FORMULÁRIOS & MAPS</span>
+            </div>
+            <div class="ring-box">
+                <div class="ring-label">
+                    PROGRESSO
+                    <span id="ring-text">0 / 6</span>
+                </div>
+                <svg class="progress-ring" width="44" height="44">
+                    <circle class="ring-bg" cx="22" cy="22" r="18"></circle>
+                    <circle class="ring-fill" id="ring-circle" cx="22" cy="22" r="18"></circle>
+                </svg>
+            </div>
+        </div>
+
+        <header class="quiz-header">
+            <h1>Conversão, Forms & Google Maps</h1>
+            <p class="subtitulo">
+                Teste seus conhecimentos sobre layouts divididos com <code>1fr 1fr</code>, campos inteligentes de formulário, validação nativa e incorporação de mapas com <code>&lt;iframe&gt;</code>!
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) ⚖️ Na classe <code>.compra-grid</code>, aplicamos <code>display: grid;</code> junto com <code>grid-template-columns: 1fr 1fr;</code>. O que a unidade <code>1fr 1fr</code> faz com o Formulário e o Mapa?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Cria 2 colunas iguais (cada uma ocupando 1 fração, ou 50% do espaço disponível), colocando o formulário na esquerda e o mapa na direita.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Empilha o mapa embaixo do formulário com 1 pixel de distância entre eles.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Deixa o formulário ocupando 90% da tela e o mapa espremido em 10%.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Esconde o mapa do Google quando o site é aberto no computador.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 🔗 [DESAFIO DE CÓDIGO] Na tag <code>&lt;label for="email"&gt;</code>, ligamos o texto ao campo de digitação para que, ao clicar no rótulo, o cursor já pisque dentro da caixa. Complete o atributo que cria essa conexão no <code>&lt;input&gt;</code>:</p>
+                <div class="html-box">
+                    <div class="box-header">
+                        <span>index.html — Grupo de Input</span>
+                        <span>HTML5</span>
+                    </div>
+                    <span class="t-tag">&lt;label</span> <span class="t-attr">for</span>=<span class="h-str t-str">"email"</span><span class="t-tag">&gt;</span>Seu E-mail<span class="t-tag">&lt;/label&gt;</span><br>
+                    <span class="t-tag">&lt;input</span> <span class="t-attr">type</span>=<span class="t-str">"email"</span> <input type="text" class="code-input" id="q2_input" placeholder="atributo" autocomplete="off">=<span class="t-str">"email"</span> <span class="t-attr">required</span><span class="t-tag">&gt;</span>
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 📱 Nos campos do formulário, usamos <code>type="email"</code>, <code>type="tel"</code> e o atributo <code>required</code> em vez de deixar tudo como <code>type="text"</code>. Qual é a vantagem disso?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> O navegador pinta automaticamente os campos de verde quando o usuário começa a digitar.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> O HTML5 impede o envio de campos vazios (<code>required</code>), exige o formato com <code>@</code> no e-mail e abre o teclado numérico no celular para o telefone (<code>tel</code>).</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Envia os dados direto para o WhatsApp da loja sem precisar de JavaScript.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Criptografa a senha do usuário antes de salvar no computador.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🗺️ Na caixa do mapa (<code>.mapa</code>), colocamos <code>border-radius: var(--border-radius);</code> e também <code>overflow: hidden;</code>. Por que o <code>overflow: hidden;</code> é essencial aqui?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Porque o <code>&lt;iframe&gt;</code> do Google Maps tem cantos quadrados que saltariam para fora da borda arredondada se não fossem recortados pelo <code>overflow: hidden</code>.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Para impedir que o usuário dê zoom no mapa usando a rodinha do mouse.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Para deixar o mapa em modo noturno automaticamente.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Porque sem <code>overflow: hidden</code> o Google bloqueia o carregamento do mapa.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 🚀 [DESAFIO DE CÓDIGO] Complete o valor do atributo <code>type</code> no botão verde abaixo para que ele dispare o envio e a validação nativa do formulário <code>#formContato</code>:</p>
+                <div class="html-box">
+                    <div class="box-header">
+                        <span>index.html — Botão de Envio</span>
+                        <span>HTML5</span>
+                    </div>
+                    <span class="t-tag">&lt;button</span> <span class="t-attr">type</span>=<span class="t-str">"<input type="text" class="code-input" id="q5_input" placeholder="tipo" autocomplete="off">"</span> <span class="t-attr">class</span>=<span class="t-str">"botao-whatsapp"</span><span class="t-tag">&gt;</span><br>
+                    &nbsp;&nbsp;&lt;i class="fab fa-whatsapp"&gt;&lt;/i&gt; Se inscrever<br>
+                    <span class="t-tag">&lt;/button&gt;</span>
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) ⚡ No código do <code>&lt;iframe&gt;</code> do Google Maps, adicionamos o atributo <code>loading="lazy"</code>. Como isso melhora a experiência de quem acessa a Landing Page?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Faz o mapa aparecer em câmera lenta com efeito de fade-in.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Atrasa o carregamento pesado do mapa até o visitante rolar a página para perto dessa seção, deixando a abertura inicial do site muito mais rápida.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Salva o mapa offline para funcionar mesmo sem internet.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> Remove o pino vermelho de localização da Avenida Paulista.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-send" onclick="corrigir()">💬 Enviar Respostas & Ver Score</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        // Atualiza o anel circular SVG conforme o aluno preenche
+        function atualizarAnel() {
+            const feitas = [
+                !!document.querySelector('input[name="q1"]:checked'),
+                document.getElementById("q2_input").value.trim() !== "",
+                !!document.querySelector('input[name="q3"]:checked'),
+                !!document.querySelector('input[name="q4"]:checked'),
+                document.getElementById("q5_input").value.trim() !== "",
+                !!document.querySelector('input[name="q6"]:checked')
+            ].filter(Boolean).length;
+
+            const total = 6;
+            const circunferencia = 113.1; // 2 * PI * 18
+            const offset = circunferencia - (feitas / total) * circunferencia;
+
+            document.getElementById("ring-circle").style.strokeDashoffset = offset;
+            document.getElementById("ring-text").textContent = `${feitas} / ${total}`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarAnel);
+        document.getElementById("quizForm").addEventListener("input", atualizarAnel);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "id" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "radio", resposta: "a" },
+                q5: { tipo: "text",  resposta: "submit" },
+                q6: { tipo: "radio", resposta: "b" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(/[="';]/g, "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Campo obrigatório vazio!</b> Marque ou digite sua resposta.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Check-in confirmado!</b> Resposta exata.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Falha no envio!</b> A resposta certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>Atributo inválido!</b> O código exato era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🟢 CONVERSÃO MÁXIMA! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#2dd4bf;">Formulário blindado e mapa perfeitamente alinhado! Zero erros.</span>`;
+                dispararSinal();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `⚡ SINAL FORTE! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#94a3b8;">Mandou muito bem! Revise os detalhes marcados acima para gabaritar.</span>`;
+                dispararSinal();
+            } else {
+                areaResultado.innerHTML = `📡 REAJUSTANDO ANTENA (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#fda4af;">Confira os feedbacks em vermelho acima, corrija e envie novamente!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial: Ondas de GPS e partículas WhatsApp Green
+        function dispararSinal() {
+            const canvas = document.getElementById("signal-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#25D366", "#2dd4bf", "#fbbf24", "#86efac", "#ffffff"];
+            const particulas = [];
+
+            for (let i = 0; i < 85; i++) {
+                const angulo = Math.random() * Math.PI * 2;
+                const velocidade = Math.random() * 10 + 3;
+                particulas.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: Math.cos(angulo) * velocidade,
+                    vy: Math.sin(angulo) * velocidade,
+                    size: Math.random() * 5 + 2.5,
+                    color: cores[Math.floor(Math.random() * cores.length)],
+                    alpha: 1
+                });
+            }
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let ativas = false;
+
+                particulas.forEach(p => {
+                    if (p.alpha > 0.02) {
+                        ativas = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vx *= 0.96;
+                        p.vy *= 0.96;
+                        p.alpha -= 0.015;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, p.alpha);
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = p.color;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+
+                if (ativas) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>

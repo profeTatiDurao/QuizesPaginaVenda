@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #01 - Landing Page & Hero</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --neon-cyan: #00f5d4;
+            --neon-pink: #f72585;
+            --neon-purple: #7209b7;
+            --neon-green: #10b981;
+            --neon-red: #ef4444;
+            --neon-yellow: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.04) 1px, transparent 1px);
+            background-size: 35px 35px;
+            color: var(--text-main);
+            padding: 30px 15px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+            background: rgba(17, 24, 39, 0.92);
+            backdrop-filter: blur(12px);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 245, 212, 0.25);
+            box-shadow: 0 0 40px rgba(0, 245, 212, 0.08), 0 20px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(247, 37, 133, 0.15);
+            color: var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            background: linear-gradient(90deg, var(--neon-cyan), #fff, var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Animação de entrada dos cards */
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes popSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: #0f1623;
+            border: 1px solid var(--card-border);
+            border-left: 5px solid var(--neon-cyan);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: slideUpFade 0.6s ease forwards;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.1s; }
+        .pergunta:nth-child(2) { animation-delay: 0.2s; }
+        .pergunta:nth-child(3) { animation-delay: 0.3s; }
+        .pergunta:nth-child(4) { animation-delay: 0.4s; }
+        .pergunta:nth-child(5) { animation-delay: 0.5s; }
+        .pergunta:nth-child(6) { animation-delay: 0.6s; }
+
+        .pergunta:hover {
+            border-color: rgba(0, 245, 212, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--neon-green);
+            border-left-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            animation: popSuccess 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--neon-red);
+            border-left-color: var(--neon-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+            animation: shakeError 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--neon-yellow);
+            border-left-color: var(--neon-yellow);
+        }
+
+        .pergunta p.enunciado {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #ffffff;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(0, 245, 212, 0.12);
+            color: var(--neon-cyan);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.92em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #161f30;
+            border: 1px solid #263147;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        label.opcao:hover {
+            background: #1e293b;
+            border-color: var(--neon-cyan);
+            transform: translateX(5px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--neon-pink);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Bloco de Código para Preencher */
+        .code-editor {
+            background: #060911;
+            border: 1px solid #2a3441;
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .editor-dots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .editor-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-r { background: #ff5f56; }
+        .dot-y { background: #ffbd2e; }
+        .dot-g { background: #27c93f; }
+
+        .code-prop { color: #7dd3fc; }
+        .code-sel { color: #f472b6; }
+        .code-comment { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'Fira Code', monospace;
+            background: #1e293b;
+            border: 2px dashed var(--neon-pink);
+            color: var(--neon-cyan);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            width: 140px;
+            outline: none;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 245, 212, 0.35);
+            background: #0f172a;
+        }
+
+        /* Botão Principal */
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button.btn-submit {
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 25px rgba(247, 37, 133, 0.45);
+            transition: all 0.3s ease;
+        }
+
+        button.btn-submit:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 0 35px rgba(0, 245, 212, 0.6);
+        }
+
+        button.btn-submit:active {
+            transform: translateY(1px);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.98rem;
+            font-weight: 600;
+        }
+
+        .correto {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .errado {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .neutro {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Área de Resultado */
+        #resultado {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #131c2e, #0b111e);
+            border: 2px solid var(--neon-cyan);
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 245, 212, 0.2);
+            animation: slideUpFade 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+            background: #090d16;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+        }
+
+        #linkRespostas a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #1f2937;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--neon-cyan);
+            color: #090d16;
+        }
+
+        /* Canvas de Confete */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.8rem; }
+            .code-input { width: 115px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <header class="quiz-header">
+            <span class="badge">⚡ Missão Front-End #01</span>
+            <h1>TechStore Pro: Header & Hero</h1>
+            <p class="subtitulo">
+                Mostre que você domina Flexbox, Variáveis CSS, Sticky Menu e a construção da Seção Hero da nossa Landing Page!
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🎨 No topo do nosso CSS, criamos o bloco <code>:root</code> com <code>--primary: #4361ee;</code>. Qual é a grande vantagem de usar variáveis CSS assim?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Faz o navegador carregar as imagens do site duas vezes mais rápido.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Centraliza as cores em um único lugar: se você mudar o valor no <code>:root</code>, o site inteiro atualiza automaticamente.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Serve apenas para deixar o código mais bonito, sem efeito real na página.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Bloqueia o usuário de inspecionar o código-fonte do site.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 📌 [DESAFIO DE CÓDIGO] Complete a propriedade CSS abaixo para fazer o menu (<code>&lt;header&gt;</code>) grudar no topo da tela quando o usuário rolar a página:</p>
+                <div class="code-editor">
+                    <div class="editor-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+                    <span class="code-sel">header</span> {<br>
+                    &nbsp;&nbsp;<span class="code-prop">background-color</span>: white;<br>
+                    &nbsp;&nbsp;<span class="code-prop">position</span>: <input type="text" class="code-input" id="q2_input" placeholder="digite aqui" autocomplete="off">; <span class="code-comment">/* Mantém fixo ao rolar */</span><br>
+                    &nbsp;&nbsp;<span class="code-prop">top</span>: 0;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) ↔️ Na classe <code>.header-content</code>, usamos <code>display: flex;</code> junto com <code>justify-content: space-between;</code>. O que isso faz com a Logo, o Menu e o Botão "Comprar"?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Empilha todos os elementos um embaixo do outro no canto esquerdo.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Junta todos os itens bem apertados no centro da barra.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Joga o primeiro item para a esquerda, o último para a direita e distribui o espaço igualmente entre eles.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Esconde os links do menu para economizar espaço.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🌑 Olhando para o <code>background-image</code> da seção <code>.hero</code>, colocamos um <code>linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7))</code> antes da <code>url()</code> da foto. Por que fizemos isso?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Para criar uma camada escura (overlay) sobre a foto, garantindo contraste para o texto branco ficar legível.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Porque o CSS não aceita imagens sem um gradiente antes.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Para deixar a imagem de fundo girando em 3D.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Para cortar a imagem exatamente ao meio.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 🖼️ [DESAFIO DE CÓDIGO] Na capa do site (<code>.hero</code>), qual valor usamos em <code>background-size</code> para que a foto cubra toda a caixa sem deixar espaços vazios?</p>
+                <div class="code-editor">
+                    <div class="editor-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+                    <span class="code-sel">.hero</span> {<br>
+                    &nbsp;&nbsp;<span class="code-prop">height</span>: 600px;<br>
+                    &nbsp;&nbsp;<span class="code-prop">background-position</span>: center;<br>
+                    &nbsp;&nbsp;<span class="code-prop">background-size</span>: <input type="text" class="code-input" id="q5_input" placeholder="digite aqui" autocomplete="off">; <span class="code-comment">/* Cobre toda a área */</span><br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) 📱 No final do CSS, criamos a regra <code>@media (max-width: 768px)</code> mudando <code>.header-content</code> para <code>flex-direction: column;</code>. Qual é o objetivo disso?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Fazer o site funcionar apenas em celulares e bloquear computadores.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Organizar a logo, o menu e o botão em coluna em telas menores (celulares/tablets) para não ficarem espremidos.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Aumentar a altura do cabeçalho para 768 pixels.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> Apagar o botão "Comprar" quando a tela for pequena.</label>
+            </div>
+
+            <div class="btn-container">
+                <button type="button" class="btn-submit" onclick="corrigir()">🚀 Compilar & Ver Resultado</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "b" },
+                q2: { tipo: "text",  resposta: "sticky" },
+                q3: { tipo: "radio", resposta: "c" },
+                q4: { tipo: "radio", resposta: "a" },
+                q5: { tipo: "text",  resposta: "cover" },
+                q6: { tipo: "radio", resposta: "b" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                // Limpa estados e feedbacks anteriores
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(";", "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Campo vazio!</b> Você pulou essa questão.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Build bem-sucedido!</b> Resposta exata.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.textContent.trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Erro de sintaxe!</b> A resposta certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>Erro de sintaxe!</b> O código correto era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `👑 FULL-STACK LEGEND! (${pontos}/${total})<br><span style="font-size:1rem; color:#00f5d4;">Zero bugs no deploy! Você dominou a estrutura da Landing Page.</span>`;
+                dispararConfete();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `⚡ DEV EM ASCENSÃO! (${pontos}/${total})<br><span style="font-size:1rem; color:#9ca3af;">Mandou muito bem! Dá uma olhada nos detalhes que faltaram acima.</span>`;
+                dispararConfete();
+            } else {
+                areaResultado.innerHTML = `🛠️ MODO DEBUG (${pontos}/${total})<br><span style="font-size:1rem; color:#f87171;">Revise os feedbacks em vermelho, ajuste o código e tente rodar de novo!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial de partículas neon ao mandar bem
+        function dispararConfete() {
+            const canvas = document.getElementById("confetti-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#00f5d4", "#f72585", "#7209b7", "#fee440", "#34d399"];
+            const particulas = [];
+
+            for (let i = 0; i < 90; i++) {
+                particulas.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 7 + 4,
+                    color: cores[Math.floor(Math.random() * cores.length)],
+                    speedY: Math.random() * 4 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    angle: Math.random() * 360
+                });
+            }
+
+            let frame = 0;
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particulas.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.angle += 4;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < 160) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>

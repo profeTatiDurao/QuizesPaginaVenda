@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #02 - CSS Grid & Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-base: #0b0614;
+            --surface: #150d24;
+            --surface-hover: #1e1333;
+            --border-subtle: rgba(168, 85, 247, 0.25);
+            --violet: #a855f7;
+            --violet-glow: rgba(168, 85, 247, 0.45);
+            --amber: #fbbf24;
+            --amber-glow: rgba(251, 191, 36, 0.35);
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --text-primary: #f8fafc;
+            --text-secondary: #a1a1aa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 35px 16px 60px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Esferas de luz animadas no fundo */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+            opacity: 0.45;
+            animation: floatOrb 10s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 380px;
+            height: 380px;
+            background: var(--violet);
+            top: -80px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: #d97706;
+            bottom: -60px;
+            right: -80px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(35px, 45px) scale(1.12); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(21, 13, 36, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Cabeçalho do Quiz */
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .mission-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.2), rgba(251, 191, 36, 0.2));
+            border: 1px solid var(--amber);
+            color: var(--amber);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 2.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 20%, var(--amber) 60%, var(--violet) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 610px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Barra de Progresso Interativa */
+        .progress-wrapper {
+            background: #0d0817;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--amber);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #23173b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--violet), var(--amber));
+            border-radius: 999px;
+            transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 12px var(--amber-glow);
+        }
+
+        /* Animações dos Cards */
+        @keyframes cardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(22px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes wobbleError {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-7px) rotate(-0.5deg); }
+            75% { transform: translateX(7px) rotate(0.5deg); }
+        }
+
+        @keyframes pulseWin {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--surface);
+            border: 2px solid rgba(168, 85, 247, 0.15);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: cardReveal 0.55s ease forwards;
+            position: relative;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.08s; }
+        .pergunta:nth-child(2) { animation-delay: 0.16s; }
+        .pergunta:nth-child(3) { animation-delay: 0.24s; }
+        .pergunta:nth-child(4) { animation-delay: 0.32s; }
+        .pergunta:nth-child(5) { animation-delay: 0.40s; }
+        .pergunta:nth-child(6) { animation-delay: 0.48s; }
+
+        /* Aplicando o conceito da aula: borda transparente que acende sem pular */
+        .pergunta:hover {
+            border-color: var(--violet);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(168, 85, 247, 0.15);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--emerald);
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.22);
+            animation: pulseWin 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--rose);
+            box-shadow: 0 0 24px rgba(244, 63, 94, 0.22);
+            animation: wobbleError 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--amber);
+        }
+
+        .enunciado {
+            font-size: 1.14rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(168, 85, 247, 0.18);
+            color: #e9d5ff;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1c1230;
+            border: 1px solid #2e1f4d;
+            padding: 13px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            font-size: 0.98rem;
+            line-height: 1.4;
+        }
+
+        label.opcao:hover {
+            background: #261842;
+            border-color: var(--amber);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--amber);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Mini Terminal / Editor de Código */
+        .terminal-box {
+            background: #090510;
+            border: 1px solid #2e1f4d;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.94rem;
+            line-height: 1.85;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e1433;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .t-sel { color: #fbbf24; }
+        .t-prop { color: #c084fc; }
+        .t-val { color: #34d399; }
+        .t-com { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1c1230;
+            border: 2px dashed var(--amber);
+            color: var(--amber);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.94rem;
+            font-weight: 700;
+            width: 120px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--violet);
+            background: #271942;
+            box-shadow: 0 0 14px var(--violet-glow);
+            color: #fff;
+        }
+
+        /* Botão de Ação */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-run {
+            background: linear-gradient(135deg, var(--amber), #f59e0b 50%, var(--violet));
+            background-size: 200% auto;
+            color: #0b0614;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.18rem;
+            padding: 16px 42px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px var(--amber-glow);
+            transition: all 0.35s ease;
+        }
+
+        .btn-run:hover {
+            background-position: right center;
+            color: #ffffff;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 35px var(--violet-glow);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(16, 185, 129, 0.14);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .errado {
+            background: rgba(244, 63, 94, 0.14);
+            color: #fda4af;
+            border: 1px solid rgba(244, 63, 94, 0.35);
+        }
+
+        .neutro {
+            background: rgba(251, 191, 36, 0.14);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        /* Caixa de Resultado */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 18px;
+            background: linear-gradient(145deg, #1d1233, #110a1f);
+            border: 2px solid var(--amber);
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+            display: none;
+            box-shadow: 0 0 35px var(--amber-glow);
+            animation: cardReveal 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #0d0817;
+            border: 1px solid #2e1f4d;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--amber);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #23173b;
+            color: var(--amber);
+            border: 1px solid var(--amber);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--amber);
+            color: #0b0614;
+        }
+
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.8rem; }
+            .code-input { width: 105px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <canvas id="fx-canvas"></canvas>
+
+    <div class="container">
+        <header class="quiz-header">
+            <span class="mission-tag">⚡ Missão Front-End #02</span>
+            <h1>CSS Grid & Cards de Produtos</h1>
+            <p class="subtitulo">
+                Teste seus reflexos de dev sobre grades responsivas, alinhamento de ícones e os segredos de estilização dos cards da TechStore!
+            </p>
+        </header>
+
+        <!-- Barra de Progresso ao Vivo -->
+        <div class="progress-wrapper">
+            <div class="progress-info">
+                <span>Progresso da Missão</span>
+                <span id="progress-text">0 / 6 respondidas</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🧩 Na classe <code>.features-grid</code>, usamos <code>grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));</code>. O que essa linha mágica faz sem precisarmos escrever nenhuma <code>@media</code> query?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Trava a tela para mostrar sempre 280 cards pequenininhos lado a lado.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Encaixa automaticamente quantas colunas couberem na tela, garantindo no mínimo <code>280px</code> por card e dividindo o espaço que sobrar igualmente (<code>1fr</code>).</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Esconde os cards de produtos quando o site é aberto no celular.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Transforma todos os cards em um carrossel que gira sozinho.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 📐 [DESAFIO DE CÓDIGO] Complete a propriedade CSS abaixo para ativar o sistema de grade (Grid) no container <code>.features-grid</code>:</p>
+                <div class="terminal-box">
+                    <div class="terminal-header">
+                        <span>style.css — .features-grid</span>
+                        <span>CSS3</span>
+                    </div>
+                    <span class="t-sel">.features-grid</span> {<br>
+                    &nbsp;&nbsp;<span class="t-prop">display</span>: <input type="text" class="code-input" id="q2_input" placeholder="digite aqui" autocomplete="off">; <span class="t-com">/* Organiza os cards em grade */</span><br>
+                    &nbsp;&nbsp;<span class="t-prop">gap</span>: <span class="t-val">2.5rem</span>;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🛡️ No CSS do <code>.feature-card</code>, colocamos <code>border: 2px solid transparent;</code> e só mudamos a cor no <code>:hover</code>. Por que não colocamos a borda só na hora do <code>:hover</code>?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Porque o navegador dá erro se você usar <code>border-color</code> sem antes ter uma borda transparente.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Para reservar os 2 pixels da borda antes, evitando que o card dê um "pulo" (mude de tamanho) quando você passa o mouse.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Para deixar o fundo branco do card levemente transparente.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Apenas para gastar mais linhas de código no arquivo CSS.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🎯 Dentro de <code>.feature-icon</code>, ativamos o <code>display: flex;</code> para deixar o ícone bem no meio do círculo roxo. Quais duas propriedades fazem essa centralização perfeita (vertical e horizontal)?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> <code>text-align: center;</code> e <code>vertical-align: middle;</code></label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> <code>align-items: center;</code> e <code>justify-content: center;</code></label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> <code>position: center;</code> e <code>float: none;</code></label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> <code>grid-gap: center;</code> e <code>margin: 0;</code></label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) ⚪ [DESAFIO DE CÓDIGO] A caixa <code>.feature-icon</code> tem <code>80px</code> de largura por <code>80px</code> de altura (um quadrado). Complete o valor de <code>border-radius</code> para transformá-la em um círculo perfeito:</p>
+                <div class="terminal-box">
+                    <div class="terminal-header">
+                        <span>style.css — .feature-icon</span>
+                        <span>CSS3</span>
+                    </div>
+                    <span class="t-sel">.feature-icon</span> {<br>
+                    &nbsp;&nbsp;<span class="t-prop">width</span>: <span class="t-val">80px</span>;<br>
+                    &nbsp;&nbsp;<span class="t-prop">height</span>: <span class="t-val">80px</span>;<br>
+                    &nbsp;&nbsp;<span class="t-prop">border-radius</span>: <input type="text" class="code-input" id="q5_input" placeholder="ex: 10px" autocomplete="off">; <span class="t-com">/* Círculo perfeito */</span><br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) ⚡ No HTML, usamos tags como <code>&lt;i class="fas fa-bolt"&gt;&lt;/i&gt;</code> para mostrar ícones de raio, celular e controle sem usar <code>&lt;img&gt;</code>. Como isso funciona?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> O HTML5 já vem com milhares de desenhos prontos se você escrever o nome em inglês.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Essas classes conectam o HTML à biblioteca externa <strong>Font Awesome</strong>, que carrega os ícones como se fossem fontes.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> O CSS desenha cada ícone linha por linha automaticamente.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> A tag <code>&lt;i&gt;</code> busca imagens aleatórias no Google Imagens.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-run" onclick="corrigir()">⚡ Validar Código & Ver Nota</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        // Atualiza a barra de progresso conforme o aluno interage
+        function atualizarProgresso() {
+            let respondidas = 0;
+            const radios = ["q1", "q3", "q4", "q6"];
+            const textos = ["q2_input", "q5_input"];
+
+            radios.forEach(name => {
+                if (document.querySelector(`input[name="${name}"]:checked`)) {
+                    respondidas++;
+                }
+            });
+
+            textos.forEach(id => {
+                if (document.getElementById(id).value.trim() !== "") {
+                    respondidas++;
+                }
+            });
+
+            const total = 6;
+            const porcentagem = (respondidas / total) * 100;
+            document.getElementById("progress-fill").style.width = porcentagem + "%";
+            document.getElementById("progress-text").textContent = `${respondidas} / ${total} respondidas`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarProgresso);
+        document.getElementById("quizForm").addEventListener("input", atualizarProgresso);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "b" },
+                q2: { tipo: "text",  resposta: "grid" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "radio", resposta: "b" },
+                q5: { tipo: "text",  resposta: "50%" },
+                q6: { tipo: "radio", resposta: "b" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(";", "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Questão em branco!</b> Marque ou digite sua resposta antes de finalizar.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Layout aprovado!</b> Você acertou em cheio.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Layout quebrou!</b> A alternativa correta era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>Valor inválido!</b> O código exato era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🏆 GRID MASTER! (${pontos}/${total})<br><span style="font-size:1rem; color:#fbbf24;">100% responsivo e sem nenhum bug visual!</span>`;
+                dispararEstrelas();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `🔥 MANDOU BEM! (${pontos}/${total})<br><span style="font-size:1rem; color:#d8b4fe;">Quase gabaritou! Dá uma conferida nas dicas dos cards marcados.</span>`;
+                dispararEstrelas();
+            } else {
+                areaResultado.innerHTML = `🧩 HORA DO INSPECT (${pontos}/${total})<br><span style="font-size:1rem; color:#fda4af;">Leia as correções em vermelho acima, ajuste suas respostas e tente de novo!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial de explosão de faíscas douradas e roxas
+        function dispararEstrelas() {
+            const canvas = document.getElementById("fx-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#fbbf24", "#a855f7", "#34d399", "#f472b6", "#ffffff"];
+            const particulas = [];
+
+            for (let i = 0; i < 85; i++) {
+                particulas.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    radius: Math.random() * 5 + 2,
+                    color: cores[Math.floor(Math.random() * cores.length)],
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.5) * 16 - 3,
+                    alpha: 1
+                });
+            }
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let ativas = false;
+
+                particulas.forEach(p => {
+                    if (p.alpha > 0) {
+                        ativas = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.25; // gravidade
+                        p.alpha -= 0.015;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, p.alpha);
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+
+                if (ativas) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>

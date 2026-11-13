@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #04 - Galeria & Scrollbar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Rajdhani:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #0b0213;
+            --surface: #170529;
+            --cyan: #00f0ff;
+            --magenta: #ff0055;
+            --purple: #8a2be2;
+            --text-light: #e0d8f0;
+            --scanline: rgba(0, 240, 255, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 40px 16px 80px;
+            overflow-x: hidden;
+            position: relative;
+            background-image: 
+                linear-gradient(rgba(138, 43, 226, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(138, 43, 226, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center bottom;
+            perspective: 1000px;
+        }
+
+        /* Efeito CRT Scanline Overlay */
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(var(--scanline) 50%, transparent 50%);
+            background-size: 100% 4px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: rgba(23, 5, 41, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--purple);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.3), inset 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: rgba(255, 0, 85, 0.15);
+            color: var(--magenta);
+            border: 1px solid var(--magenta);
+            padding: 6px 18px;
+            border-radius: 4px;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px dashed var(--purple);
+            padding-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--cyan), 0 0 40px var(--cyan);
+            margin-bottom: 15px;
+        }
+
+        .subtitulo {
+            font-size: 1.2rem;
+            color: #b5a5d1;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* Progresso Retro */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: #000;
+            padding: 10px 20px;
+            border: 1px solid var(--cyan);
+            border-radius: 6px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2);
+        }
+
+        .progress-text {
+            font-family: 'VT323', monospace;
+            color: var(--cyan);
+            font-size: 1.5rem;
+            min-width: 100px;
+        }
+
+        .progress-track {
+            flex-grow: 1;
+            height: 12px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--purple), var(--magenta), var(--cyan));
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px var(--magenta);
+        }
+
+        /* Animações Cards */
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .pergunta {
+            background: #130424;
+            border: 1px solid #2d1445;
+            border-left: 6px solid var(--purple);
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            opacity: 0;
+            animation: slideInRight 0.5s ease forwards;
+            transition: 0.3s;
+        }
+
+        /* Delay em cascata para as 10 perguntas */
+        .pergunta:nth-child(1) { animation-delay: 0.1s; }
+        .pergunta:nth-child(2) { animation-delay: 0.2s; }
+        .pergunta:nth-child(3) { animation-delay: 0.3s; }
+        .pergunta:nth-child(4) { animation-delay: 0.4s; }
+        .pergunta:nth-child(5) { animation-delay: 0.5s; }
+        .pergunta:nth-child(6) { animation-delay: 0.6s; }
+        .pergunta:nth-child(7) { animation-delay: 0.7s; }
+        .pergunta:nth-child(8) { animation-delay: 0.8s; }
+        .pergunta:nth-child(9) { animation-delay: 0.9s; }
+        .pergunta:nth-child(10) { animation-delay: 1.0s; }
+
+        .pergunta:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+            transform: scale(1.01);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--cyan);
+            border-left-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--magenta);
+            border-left-color: var(--magenta);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);
+        }
+
+        .pergunta.card-neutro {
+            border-left-color: #555;
+        }
+
+        .enunciado {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--cyan);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        /* Alternativas */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0c0218;
+            border: 1px solid #230f36;
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.05rem;
+        }
+
+        label.opcao:hover {
+            background: #190533;
+            border-color: var(--magenta);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--magenta);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* IDE Synthwave */
+        .ide-box {
+            background: #05010a;
+            border: 1px solid #3b1763;
+            border-radius: 6px;
+            padding: 15px 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+            color: #d8cce8;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .ide-bar {
+            color: var(--magenta);
+            border-bottom: 1px dashed #3b1763;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .c-sel { color: var(--cyan); }
+        .c-prop { color: #f8c5ff; }
+        .c-val { color: var(--magenta); }
+        .c-com { color: #6e5c87; font-style: italic; }
+
+        .code-input {
+            font-family: 'Fira Code', monospace;
+            background: #000;
+            border: 1px solid var(--magenta);
+            color: var(--cyan);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            width: 140px;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 0, 85, 0.4);
+        }
+
+        .code-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+            color: #fff;
+        }
+
+        /* Botão Arcade */
+        .btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn-arcade {
+            background: var(--magenta);
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            padding: 15px 50px;
+            border: 4px solid #fff;
+            border-radius: 0;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px var(--magenta), 0 0 20px var(--magenta), inset 0 0 10px rgba(0,0,0,0.5);
+            transition: 0.1s;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 5px var(--magenta), inset 0 0 15px rgba(0,0,0,0.8);
+        }
+        
+        .btn-arcade:hover {
+            background: var(--cyan);
+            border-color: #fff;
+            box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--cyan);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-left: 4px solid;
+        }
+
+        .correto {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .errado {
+            background: rgba(255, 0, 85, 0.1);
+            color: #ff4d85;
+            border-color: var(--magenta);
+        }
+
+        .neutro {
+            background: rgba(138, 43, 226, 0.1);
+            color: #c99cff;
+            border-color: var(--purple);
+        }
+
+        #resultado {
+            margin-top: 40px;
+            padding: 30px;
+            background: #000;
+            border: 2px solid var(--cyan);
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            text-transform: uppercase;
+        }
+
+        #linkRespostas {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: #b5a5d1;
+            display: none;
+        }
+
+        #linkRespostas a { color: var(--cyan); }
+
+        @media (max-width: 720px) {
+            .container { padding: 25px 15px; }
+            h1 { font-size: 2.2rem; }
+            .btn-arcade { font-size: 1.5rem; padding: 12px 30px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <span class="level-badge">Level 04</span>
+            <h1>Scroll & Galeria</h1>
+            <p class="subtitulo">
+                Domine o fluxo de imagens, Flexbox quebrado (Wrap), Scroll Horizontal e a arte de domar o Scrollbar do navegador!
+            </p>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-text">Q: <span id="qt-resp">0</span>/10</div>
+            <div class="progress-track"><div class="progress-fill" id="p-bar"></div></div>
+        </div>
+
+        <form id="quizForm">
+
+            <!-- 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) Na <code>.equipe-grid</code>, usamos <code>display: flex;</code> e em seguida <code>flex-wrap: wrap;</code>. O que o <code>flex-wrap</code> faz exatamente com os cartões da equipe?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Força os cartões a ficarem do tamanho exato da tela.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Permite que os cartões quebrem para a linha de baixo caso não caibam mais na largura da tela.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Transforma os cartões em um carrossel que você precisa arrastar.</label>
+            </div>
+
+            <!-- 2 -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) Na foto arredondada (<code>.foto-membro</code>), usamos <code>border-radius: 50%;</code> para fazer um círculo. Por que também precisamos colocar <code>object-fit: cover;</code>?</p>
+                <label class="opcao"><input type="radio" name="q2" value="a"> Para que a foto preencha totalmente o círculo recortando as sobras, impedindo que o rosto da pessoa fique esticado ou achatado.</label>
+                <label class="opcao"><input type="radio" name="q2" value="b"> Para deixar a foto em preto e branco.</label>
+                <label class="opcao"><input type="radio" name="q2" value="c"> Para criar a borda de 3px na cor principal.</label>
+            </div>
+
+            <!-- 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) No CSS, temos a regra <code>.fundo-escuro .titulo-secao</code> que altera a cor do texto do título. Por que escrevemos essas duas classes juntas (separadas por espaço)?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Para criar uma animação de piscar no texto.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Porque as duas classes são exatamente iguais e fazem a mesma coisa.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Para que a mudança de cor afete <strong>apenas</strong> os títulos (<code>.titulo-secao</code>) que estiverem dentro de uma seção escura (<code>.fundo-escuro</code>).</label>
+            </div>
+
+            <!-- 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🖼️ Na <code>.galeria-fotos</code>, não usamos <code>flex-wrap: wrap;</code>. Em vez disso, usamos <code>overflow-x: auto;</code>. O que isso gera na página?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Esconde as fotos que passarem do limite da tela, cortando-as.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Cria uma barra de rolagem <strong>horizontal</strong>, permitindo que o usuário deslize para o lado para ver o resto das fotos.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Faz as fotos diminuírem de tamanho até todas caberem na mesma linha.</label>
+            </div>
+
+            <!-- 5 (Input) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 💻 [CÓDIGO] Para organizar a galeria em linha reta (lado a lado), qual propriedade usamos no container <code>.galeria-fotos</code> antes de colocar o overflow?</p>
+                <div class="ide-box">
+                    <div class="ide-bar">style.css — Galeria</div>
+                    <span class="c-sel">.galeria-fotos</span> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">display</span>: <input type="text" class="code-input" id="q5_input" placeholder="valor">;<br>
+                    &nbsp;&nbsp;<span class="c-prop">gap</span>: <span class="c-val">20px</span>;<br>
+                    &nbsp;&nbsp;<span class="c-prop">overflow-x</span>: <span class="c-val">auto</span>;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) Para personalizar a espessura da barra de rolagem da nossa galeria horizontal, o professor alterou a propriedade <code>height</code> no pseudo-elemento <code>::-webkit-scrollbar</code>. Se a galeria fosse <strong>vertical</strong> (rolando para cima/baixo), o que ele mudaria?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Continuaria usando <code>height</code>.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Usaria a propriedade <code>width</code> (largura) para controlar a espessura da barra lateral.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Não é possível personalizar barras verticais.</label>
+            </div>
+
+            <!-- 7 (Input) -->
+            <div class="pergunta" id="q7box">
+                <p class="enunciado">7) 💻 [CÓDIGO] Qual é o nome do pseudo-elemento CSS (a parte após os dois pontos duplos) que usamos para pintar o <strong>fundo estático (trilho)</strong> por onde a barra de rolagem desliza?</p>
+                <div class="ide-box">
+                    <div class="ide-bar">style.css — Scrollbar</div>
+                    <span class="c-sel">.galeria-fotos</span>::<input type="text" class="code-input" id="q7_input" placeholder="-webkit-..." style="width: 220px;"> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">background</span>: <span class="c-val">#222</span>; <span class="c-com">/* Cor do trilho */</span><br>
+                    }
+                </div>
+            </div>
+
+            <!-- 8 (Input) -->
+            <div class="pergunta" id="q8box">
+                <p class="enunciado">8) 💻 [CÓDIGO] E como chamamos a parte da barra que <strong>se move</strong> (o controle deslizante) que nós pintamos com a cor principal (<code>var(--primary)</code>)?</p>
+                <div class="ide-box">
+                    <div class="ide-bar">style.css — Scrollbar</div>
+                    <span class="c-sel">.galeria-fotos</span>::<input type="text" class="code-input" id="q8_input" placeholder="-webkit-..." style="width: 220px;"> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">background-color</span>: <span class="c-val">var(--primary)</span>;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- 9 -->
+            <div class="pergunta" id="q9box">
+                <p class="enunciado">9) Nas fotos da <code>.galeria-fotos img</code>, travamos a altura em <code>250px</code> (height), mas não definimos a largura (width). O que acontece com a largura das fotos originais?</p>
+                <label class="opcao"><input type="radio" name="q9" value="a"> Todas as imagens ficam perfeitamente quadradas (250x250).</label>
+                <label class="opcao"><input type="radio" name="q9" value="b"> A largura se ajusta automaticamente para manter a proporção original da foto, baseada na nova altura de 250px.</label>
+                <label class="opcao"><input type="radio" name="q9" value="c"> A largura fica travada em 100%, cobrindo a tela toda.</label>
+            </div>
+
+            <!-- 10 -->
+            <div class="pergunta" id="q10box">
+                <p class="enunciado">10) Observação importante: Os prefixos <code>::-webkit-scrollbar</code>, <code>-track</code> e <code>-thumb</code> funcionam perfeitamente no Google Chrome, Edge e Safari. Qual grande navegador atual <strong>não</strong> suporta esses prefixos <code>-webkit-</code> para scrollbars?</p>
+                <label class="opcao"><input type="radio" name="q10" value="a"> Opera</label>
+                <label class="opcao"><input type="radio" name="q10" value="b"> Brave</label>
+                <label class="opcao"><input type="radio" name="q10" value="c"> Firefox (Mozilla)</label>
+            </div>
+
+            <div class="btn-container">
+                <button type="button" class="btn-arcade" onclick="corrigir()">[ INSERT COIN & SUBMIT ]</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        // Sistema de barra de progresso (0 a 10)
+        function calcProgresso() {
+            let resp = 0;
+            const radios = ["q1", "q2", "q3", "q4", "q6", "q9", "q10"];
+            const inputs = ["q5_input", "q7_input", "q8_input"];
+
+            radios.forEach(name => {
+                if (document.querySelector(`input[name="${name}"]:checked`)) resp++;
+            });
+            inputs.forEach(id => {
+                if (document.getElementById(id).value.trim() !== "") resp++;
+            });
+
+            document.getElementById("qt-resp").textContent = resp;
+            document.getElementById("p-bar").style.width = (resp / 10) * 100 + "%";
+        }
+
+        document.getElementById("quizForm").addEventListener("change", calcProgresso);
+        document.getElementById("quizForm").addEventListener("input", calcProgresso);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", r: "b" },
+                q2: { tipo: "radio", r: "a" },
+                q3: { tipo: "radio", r: "c" },
+                q4: { tipo: "radio", r: "b" },
+                q5: { tipo: "text",  r: "flex" },
+                q6: { tipo: "radio", r: "b" },
+                q7: { tipo: "text",  r: "-webkit-scrollbar-track" },
+                q8: { tipo: "text",  r: "-webkit-scrollbar-thumb" },
+                q9: { tipo: "radio", r: "b" },
+                q10: { tipo: "radio", r: "c" }
+            };
+
+            let pontos = 0;
+            let params = [];
+
+            for (let i = 1; i <= 10; i++) {
+                const q = "q" + i;
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const old = box.querySelector(".feedback");
+                if (old) old.remove();
+
+                let valorAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const obj = document.querySelector(`input[name="${q}"]:checked`);
+                    valorAluno = obj ? obj.value : "nao_respondeu";
+                    acertou = (valorAluno === item.r);
+                } else {
+                    const el = document.getElementById(q + "_input");
+                    const txt = el.value.trim().toLowerCase().replace(/;/g, "");
+                    valorAluno = txt === "" ? "nao_respondeu" : txt;
+                    acertou = (valorAluno === item.r);
+                }
+
+                if (acertou) pontos++;
+                params.push(`${q}=${encodeURIComponent(valorAluno)}`);
+
+                const fb = document.createElement("div");
+                fb.classList.add("feedback");
+
+                if (valorAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    fb.classList.add("neutro");
+                    fb.innerHTML = "SYSTEM_WARNING: Campo não preenchido.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    fb.classList.add("correto");
+                    fb.innerHTML = "DATA_VALID: Resposta Correta!";
+                } else {
+                    box.classList.add("card-errado");
+                    fb.classList.add("errado");
+                    
+                    if (item.tipo === "radio") {
+                        let certa = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.r) certa = inp.parentNode.textContent.trim();
+                        });
+                        fb.innerHTML = `FATAL_ERROR: Alternativa correta:<br>> ${certa}`;
+                    } else {
+                        fb.innerHTML = `SYNTAX_ERROR: O comando exato era: <code>${item.r}</code>`;
+                    }
+                }
+                box.appendChild(fb);
+            }
+
+            const res = document.getElementById("resultado");
+            res.style.display = "block";
+
+            if (pontos === 10) {
+                res.innerHTML = `HIGH SCORE! [ ${pontos} / 10 ]<br><span style="font-size:1rem; color:var(--cyan);">Zero bugs. Você é uma lenda do CSS!</span>`;
+            } else if (pontos >= 7) {
+                res.innerHTML = `STAGE CLEARED [ ${pontos} / 10 ]<br><span style="font-size:1rem; color:#b5a5d1;">Muito bom! Revise seus logs de erro e tente o Perfect Score!</span>`;
+            } else {
+                res.innerHTML = `GAME OVER [ ${pontos} / 10 ]<br><span style="font-size:1rem; color:var(--magenta);">Continue? Analise os erros em vermelho e tente novamente.</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            const link = window.location.origin + window.location.pathname + "?" + params.join("&");
+            const divLink = document.getElementById("linkRespostas");
+            
+            divLink.style.display = "block";
+            divLink.innerHTML = `
+                🔗 <b>URL de Salvamento:</b><br>
+                <a href="${link}" target="_blank">${link}</a>
+            `;
+
+            res.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    </script>
+</body>
+</html>

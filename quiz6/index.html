@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #06 - JavaScript & Slider Logic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-abyss: #050a18;
+            --surface: #0c152c;
+            --surface-card: #111d3b;
+            --border-ice: rgba(56, 189, 248, 0.22);
+            --electric-blue: #38bdf8;
+            --electric-glow: rgba(56, 189, 248, 0.4);
+            --indigo: #818cf8;
+            --js-gold: #facc15;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.35);
+            --error: #f43f5e;
+            --error-glow: rgba(244, 63, 94, 0.35);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-abyss);
+            background-image: 
+                radial-gradient(circle at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 80% 90%, rgba(129, 140, 248, 0.14) 0%, transparent 45%),
+                radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 26px 26px;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px 75px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 810px;
+            margin: 0 auto;
+            background: rgba(12, 21, 44, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-ice);
+            border-radius: 22px;
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.08);
+            position: relative;
+        }
+
+        /* Badge JS Runtime */
+        .runtime-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+        }
+
+        .js-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(250, 204, 21, 0.12);
+            color: var(--js-gold);
+            border: 1px solid rgba(250, 204, 21, 0.45);
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .js-box-icon {
+            background: var(--js-gold);
+            color: #050a18;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 800;
+            font-size: 0.75rem;
+        }
+
+        .runtime-status {
+            color: var(--electric-blue);
+            font-weight: 700;
+        }
+
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.35rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff 10%, var(--electric-blue) 55%, var(--js-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.03rem;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.55;
+        }
+
+        /* Rastreador Interativo de Nós (1 a 6) */
+        .node-tracker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #070e20;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 14px;
+            z-index: 100;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+        }
+
+        .tracker-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .nodes-list {
+            display: flex;
+            gap: 8px;
+        }
+
+        .node-pill {
+            width: 34px;
+            height: 30px;
+            border-radius: 8px;
+            background: #132042;
+            border: 1px solid #23386b;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .node-pill:hover {
+            border-color: var(--electric-blue);
+            color: #fff;
+        }
+
+        .node-pill.done {
+            background: linear-gradient(135deg, var(--electric-blue), var(--indigo));
+            border-color: #ffffff;
+            color: #050a18;
+            box-shadow: 0 0 14px var(--electric-glow);
+            transform: scale(1.08);
+        }
+
+        /* Animações dos Cards */
+        @keyframes nodeAppear {
+            from {
+                opacity: 0;
+                transform: translateY(22px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes joltError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes pulseConfirm {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--surface-card);
+            border: 1px solid rgba(56, 189, 248, 0.16);
+            border-left: 5px solid var(--electric-blue);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.28s ease;
+            opacity: 0;
+            animation: nodeAppear 0.55s ease forwards;
+            scroll-margin-top: 85px;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.06s; }
+        .pergunta:nth-child(2) { animation-delay: 0.12s; }
+        .pergunta:nth-child(3) { animation-delay: 0.18s; }
+        .pergunta:nth-child(4) { animation-delay: 0.24s; }
+        .pergunta:nth-child(5) { animation-delay: 0.30s; }
+        .pergunta:nth-child(6) { animation-delay: 0.36s; }
+
+        .pergunta:hover {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--success);
+            border-left-color: var(--success);
+            box-shadow: 0 0 24px var(--success-glow);
+            animation: pulseConfirm 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--error);
+            border-left-color: var(--error);
+            box-shadow: 0 0 24px var(--error-glow);
+            animation: joltError 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--js-gold);
+            border-left-color: var(--js-gold);
+        }
+
+        .enunciado {
+            font-size: 1.12rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(56, 189, 248, 0.13);
+            color: #7dd3fc;
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.88em;
+        }
+
+        /* Alternativas */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0a1226;
+            border: 1px solid #1d2f59;
+            padding: 13px 16px;
+            border-radius: 11px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
+        label.opcao:hover {
+            background: #142347;
+            border-color: var(--electric-blue);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--electric-blue);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Console JS para Completar Código */
+        .js-console {
+            background: #040812;
+            border: 1px solid #1e3261;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            line-height: 1.95;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .console-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--electric-blue);
+            border-bottom: 1px solid #132142;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .j-kw { color: #c084fc; }
+        .j-fn { color: #38bdf8; }
+        .j-str { color: #facc15; }
+        .j-num { color: #fb923c; }
+        .j-com { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0f1b38;
+            border: 2px dashed var(--js-gold);
+            color: var(--js-gold);
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            width: 105px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--electric-blue);
+            background: #16264d;
+            box-shadow: 0 0 14px var(--electric-glow);
+            color: #ffffff;
+        }
+
+        /* Botão Principal */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-exec {
+            background: linear-gradient(135deg, var(--electric-blue), var(--indigo));
+            color: #050a18;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.22rem;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px var(--electric-glow);
+            transition: all 0.28s ease;
+        }
+
+        .btn-exec:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 38px rgba(129, 140, 248, 0.55);
+            color: #ffffff;
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(16, 185, 129, 0.14);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .errado {
+            background: rgba(244, 63, 94, 0.14);
+            color: #fda4af;
+            border: 1px solid rgba(244, 63, 94, 0.35);
+        }
+
+        .neutro {
+            background: rgba(250, 204, 21, 0.14);
+            color: #fde047;
+            border: 1px solid rgba(250, 204, 21, 0.35);
+        }
+
+        /* Resultado Final */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #101c3b, #080f21);
+            border: 2px solid var(--electric-blue);
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 35px var(--electric-glow);
+            animation: nodeAppear 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #070e20;
+            border: 1px solid var(--border-ice);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--electric-blue);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #111d3b;
+            color: var(--electric-blue);
+            border: 1px solid var(--electric-blue);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--electric-blue);
+            color: #050a18;
+        }
+
+        #pulse-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.85rem; }
+            .node-tracker { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="pulse-canvas"></canvas>
+
+    <div class="container">
+        <div class="runtime-bar">
+            <span class="js-badge"><span class="js-box-icon">JS</span> script.js // DOM & Timers</span>
+            <span class="runtime-status" id="status-text">0/6 EXECUTADAS</span>
+        </div>
+
+        <header class="quiz-header">
+            <h1>Motor JavaScript do Slider</h1>
+            <p class="subtitulo">
+                Hora de abrir o capô do <code>script.js</code>! Prove que você entende como o JavaScript seleciona elementos, escuta cliques e troca os slides automaticamente.
+            </p>
+        </header>
+
+        <!-- Rastreador Clicável de Nós -->
+        <div class="node-tracker">
+            <span class="tracker-label">NÓS DO QUIZ:</span>
+            <div class="nodes-list">
+                <div class="node-pill" id="pill-1" onclick="irPara(1)">01</div>
+                <div class="node-pill" id="pill-2" onclick="irPara(2)">02</div>
+                <div class="node-pill" id="pill-3" onclick="irPara(3)">03</div>
+                <div class="node-pill" id="pill-4" onclick="irPara(4)">04</div>
+                <div class="node-pill" id="pill-5" onclick="irPara(5)">05</div>
+                <div class="node-pill" id="pill-6" onclick="irPara(6)">06</div>
+            </div>
+        </div>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🔎 Na primeira linha do código, usamos <code>document.querySelectorAll('.feedback-client')</code> em vez de apenas <code>querySelector</code>. Por que o <code>All</code> é obrigatório aqui?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Porque o <code>querySelector</code> normal só funciona para tags de imagem e não para <code>&lt;div&gt;</code>.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Porque temos vários depoimentos na página e queremos capturar <strong>todos</strong> eles em uma lista (NodeList) para percorrer com <code>forEach</code>.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Para apagar todas as classes CSS do arquivo <code>style.css</code>.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Porque o ponto antes de <code>.feedback-client</code> exige o uso do <code>All</code>.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) ✨ [DESAFIO DE CÓDIGO] Dentro da função <code>showSlide(index)</code>, primeiro removemos a classe <code>'active'</code> de todos os slides. Complete o método de <code>classList</code> que liga o slide escolhido:</p>
+                <div class="js-console">
+                    <div class="console-top">
+                        <span>script.js — Função showSlide(index)</span>
+                        <span>ES6+</span>
+                    </div>
+                    <span class="j-com">// Mostrar slide atual</span><br>
+                    feedbacks[index].classList.<input type="text" class="code-input" id="q2_input" placeholder="método" autocomplete="off">(<span class="j-str">'active'</span>);<br>
+                    sliderButtons[index].classList.<span class="j-fn">add</span>(<span class="j-str">'active'</span>);
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🖱️ Observe o trecho <code>sliderButtons.forEach((button, index) => { button.addEventListener('click', () => { showSlide(index); }); });</code>. O que o parâmetro <code>index</code> faz quando alguém clica na segunda bolinha?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Ele bloqueia o timer automático para o slider nunca mais andar sozinho.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Ele sempre retorna o número <code>5000</code>, que é o tempo da animação.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Ele entrega a posição exata da bolinha clicada (<code>1</code>, já que começa do zero) para abrir o depoimento correspondente na mesma posição.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Ele cria um novo botão HTML toda vez que o usuário clica.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) ⏱️ No final do script, usamos <code>setInterval(() => { ... }, 5000);</code> para trocar os depoimentos automaticamente. Por que escrevemos <code>5000</code> se queremos que o slide mude a cada <strong>5 segundos</strong>?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Porque o JavaScript conta o tempo em <strong>milissegundos</strong> (1 segundo = 1000 ms, logo 5 segundos = 5000 ms).</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Porque <code>5000</code> é o número máximo de cliques permitidos no site.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Porque o navegador divide esse número por 1000 frames por minuto.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Foi apenas um número aleatório; qualquer valor acima de 100 funciona igual.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 🔄 [DESAFIO DE CÓDIGO] Quando o slider chega no último depoimento, precisamos voltar para o índice <code>0</code> para não dar erro. Complete a propriedade que retorna o <strong>tamanho total</strong> da lista <code>feedbacks</code>:</p>
+                <div class="js-console">
+                    <div class="console-top">
+                        <span>script.js — Loop Infinito no setInterval</span>
+                        <span>ES6+</span>
+                    </div>
+                    <span class="j-kw">let</span> nextSlide = atualSlide + <span class="j-num">1</span>;<br>
+                    <span class="j-kw">if</span> (nextSlide >= feedbacks.<input type="text" class="code-input" id="q5_input" placeholder="propriedade" autocomplete="off">) {<br>
+                    &nbsp;&nbsp;nextSlide = <span class="j-num">0</span>;<br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) 📦 No topo do arquivo, declaramos <code>const feedbacks = ...</code> e <code>let atualSlide = 0;</code>. Por que usamos <code>let</code> para <code>atualSlide</code> em vez de <code>const</code>?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Porque números só podem ser guardados com <code>let</code>; <code>const</code> só aceita textos.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Porque o valor de <code>atualSlide</code> muda toda vez que o slide avança (<code>atualSlide = index</code>), e variáveis <code>const</code> não podem ser reatribuídas.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Porque <code>let</code> deixa o código rodar duas vezes mais rápido no navegador.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> Não há diferença; <code>const</code> e <code>let</code> funcionam exatamente do mesmo jeito.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-exec" onclick="corrigir()">⚡ Rodar Script & Ver Resultado</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        function irPara(num) {
+            document.getElementById("q" + num + "box").scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function atualizarPills() {
+            const respostas = [
+                !!document.querySelector('input[name="q1"]:checked'),
+                document.getElementById("q2_input").value.trim() !== "",
+                !!document.querySelector('input[name="q3"]:checked'),
+                !!document.querySelector('input[name="q4"]:checked'),
+                document.getElementById("q5_input").value.trim() !== "",
+                !!document.querySelector('input[name="q6"]:checked')
+            ];
+
+            let totalResp = 0;
+            respostas.forEach((feita, i) => {
+                const pill = document.getElementById("pill-" + (i + 1));
+                if (feita) {
+                    pill.classList.add("done");
+                    totalResp++;
+                } else {
+                    pill.classList.remove("done");
+                }
+            });
+
+            document.getElementById("status-text").textContent = `${totalResp}/6 EXECUTADAS`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarPills);
+        document.getElementById("quizForm").addEventListener("input", atualizarPills);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "b" },
+                q2: { tipo: "text",  resposta: "add" },
+                q3: { tipo: "radio", resposta: "c" },
+                q4: { tipo: "radio", resposta: "a" },
+                q5: { tipo: "text",  resposta: "length" },
+                q6: { tipo: "radio", resposta: "b" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(/[();'"]/g, "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>undefined!</b> Você deixou essa questão em branco.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Console: true!</b> Lógica impecável.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>ReferenceError!</b> A resposta certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>SyntaxError!</b> O código exato era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `⚡ JS NINJA DESBLOQUEADO! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#38bdf8;">Zero exceções no console! Você dominou DOM, eventos e timers.</span>`;
+                dispararPulsos();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `🚀 CÓDIGO EM PRODUÇÃO! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#94a3b8;">Mandou muito bem! Revise apenas os pontos marcados acima para gabaritar.</span>`;
+                dispararPulsos();
+            } else {
+                areaResultado.innerHTML = `🐞 HORA DO CONSOLE.LOG (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#fda4af;">Leia os logs de erro em vermelho acima, ajuste o código e execute novamente!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial: Ondas de pulso elétrico e nós luminosos
+        function dispararPulsos() {
+            const canvas = document.getElementById("pulse-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const ondas = [
+                { r: 10, maxR: Math.max(canvas.width, canvas.height) * 0.7, color: "#38bdf8", alpha: 0.9, speed: 12 },
+                { r: 10, maxR: Math.max(canvas.width, canvas.height) * 0.7, color: "#facc15", alpha: 0.85, speed: 9 },
+                { r: 10, maxR: Math.max(canvas.width, canvas.height) * 0.7, color: "#818cf8", alpha: 0.8, speed: 6 }
+            ];
+
+            const nos = Array.from({ length: 55 }, () => ({
+                x: cx,
+                y: cy,
+                vx: (Math.random() - 0.5) * 18,
+                vy: (Math.random() - 0.5) * 18,
+                size: Math.random() * 4 + 2,
+                color: Math.random() > 0.4 ? "#38bdf8" : "#facc15",
+                alpha: 1
+            }));
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let ativo = false;
+
+                ondas.forEach(o => {
+                    if (o.alpha > 0.02) {
+                        ativo = true;
+                        o.r += o.speed;
+                        o.alpha *= 0.96;
+
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, o.r, 0, Math.PI * 2);
+                        ctx.strokeStyle = o.color;
+                        ctx.globalAlpha = o.alpha;
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                });
+
+                nos.forEach(n => {
+                    if (n.alpha > 0.02) {
+                        ativo = true;
+                        n.x += n.vx;
+                        n.y += n.vy;
+                        n.vx *= 0.96;
+                        n.vy *= 0.96;
+                        n.alpha -= 0.016;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, n.alpha);
+                        ctx.fillStyle = n.color;
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+
+                if (ativo) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>

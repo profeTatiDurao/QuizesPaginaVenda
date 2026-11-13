@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore DevHub — Central de Missões</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #060913;
+            --surface: #0e1424;
+            --card-bg: #121a2e;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --cyan: #00f5d4;
+            --pink: #f72585;
+            --purple: #a855f7;
+            --amber: #fbbf24;
+            --emerald: #10b981;
+            --blue: #38bdf8;
+            --orange: #ff5e1a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(0, 245, 212, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(247, 37, 133, 0.1) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px 80px;
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho Hero */
+        .hub-header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeDown 0.6s ease;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .academy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.35);
+            color: var(--cyan);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            line-height: 1.15;
+            background: linear-gradient(90deg, #ffffff 15%, var(--cyan) 55%, var(--pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 14px;
+        }
+
+        .hub-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 660px;
+            margin: 0 auto 28px;
+            line-height: 1.6;
+        }
+
+        /* Barra de Status & Filtros */
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            background: rgba(14, 20, 36, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 14px 22px;
+            margin-bottom: 34px;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            background: #161f36;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            color: #fff;
+            border-color: var(--cyan);
+        }
+
+        .filter-btn.active {
+            background: var(--cyan);
+            color: #060913;
+            border-color: var(--cyan);
+            box-shadow: 0 0 16px rgba(0, 245, 212, 0.35);
+        }
+
+        .progress-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--amber);
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            padding: 8px 14px;
+            border-radius: 10px;
+        }
+
+        /* Grid de Cards */
+        .missions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        @keyframes cardPop {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mission-card {
+            --accent: var(--cyan);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-top: 4px solid var(--accent);
+            border-radius: 18px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            opacity: 0;
+            animation: cardPop 0.5s ease forwards;
+            overflow: hidden;
+        }
+
+        /* Cascata de animação */
+        .mission-card:nth-child(1) { animation-delay: 0.05s; }
+        .mission-card:nth-child(2) { animation-delay: 0.10s; }
+        .mission-card:nth-child(3) { animation-delay: 0.15s; }
+        .mission-card:nth-child(4) { animation-delay: 0.20s; }
+        .mission-card:nth-child(5) { animation-delay: 0.25s; }
+        .mission-card:nth-child(6) { animation-delay: 0.30s; }
+        .mission-card:nth-child(7) { animation-delay: 0.35s; }
+        .mission-card:nth-child(8) { animation-delay: 0.40s; }
+        .mission-card:nth-child(9) { animation-delay: 0.45s; }
+        .mission-card:nth-child(10) { animation-delay: 0.50s; }
+        .mission-card:nth-child(11) { animation-delay: 0.55s; }
+
+        .mission-card:not(.locked):hover {
+            transform: translateY(-7px);
+            border-color: var(--accent);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 25px color-mix(in srgb, var(--accent) 28%, transparent);
+            background: #162038;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .mission-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .check-done {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+
+        .check-done:hover {
+            border-color: var(--emerald);
+            color: var(--emerald);
+        }
+
+        .mission-card.completed .check-done {
+            background: var(--emerald);
+            border-color: var(--emerald);
+            color: #060913;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--accent) 16%, transparent);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .mission-card:not(.locked):hover .card-icon {
+            transform: scale(1.1) rotate(-4deg);
+        }
+
+        .mission-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.32rem;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .mission-card p {
+            color: var(--text-muted);
+            font-size: 0.94rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .tech-tag {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .start-cta {
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: gap 0.2s ease;
+        }
+
+        .mission-card:not(.locked):hover .start-cta {
+            gap: 10px;
+        }
+
+        /* Cards Bloqueados (Tarefas 09 a 11) */
+        .mission-card.locked {
+            --accent: #475569;
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #0b101d;
+            border-style: dashed;
+        }
+
+        .mission-card.locked:hover {
+            transform: none;
+        }
+
+        .locked-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: #94a3b8;
+            background: rgba(148, 163, 184, 0.12);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        /* Rodapé */
+        .hub-footer {
+            text-align: center;
+            margin-top: 55px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 720px) {
+            h1 { font-size: 2.15rem; }
+            .control-bar { flex-direction: column; align-items: stretch; }
+            .progress-pill { justify-content: center; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="hub-header">
+            <span class="academy-badge"><i class="fas fa-bolt"></i> TECHSTORE PRO // TRILHA DEV</span>
+            <h1>Central de Missões Front-End</h1>
+            <p class="hub-subtitle">
+                Escolha sua missão abaixo para testar seus conhecimentos em HTML5, CSS3 e JavaScript. Cada desafio abre em uma nova aba e gera o link com a sua nota final!
+            </p>
+        </header>
+
+        <!-- Barra de Filtros e Progresso -->
+        <div class="control-bar">
+            <div class="filters">
+                <button class="filter-btn active" onclick="filtrar('todos', this)">Todas (11)</button>
+                <button class="filter-btn" onclick="filtrar('html-css', this)">HTML & CSS</button>
+                <button class="filter-btn" onclick="filtrar('js', this)">JavaScript</button>
+                <button class="filter-btn" onclick="filtrar('em-breve', this)">Em Breve</button>
+            </div>
+
+            <div class="progress-pill">
+                <i class="fas fa-trophy"></i>
+                <span id="contador-concluidas">0 / 8 CONCLUÍDAS</span>
+            </div>
+        </div>
+
+        <!-- Grid das 11 Tarefas -->
+        <div class="missions-grid" id="missionsGrid">
+
+            <!-- TAREFA 01 -->
+            <a href="quiz1/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q1" style="--accent: #00f5d4;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #01</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q1')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3>Header, Flexbox & Hero</h3>
+                    <p>Variáveis CSS no <code>:root</code>, menu fixo com <code>sticky</code>, alinhamento Flexbox e capa com overlay escuro.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">HTML5 • CSS3 • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 02 -->
+            <a href="quiz2/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q2" style="--accent: #fbbf24;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #02</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q2')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-border-all"></i></div>
+                    <h3>CSS Grid & Cards de Produtos</h3>
+                    <p>Grades responsivas com <code>auto-fit</code> e <code>minmax</code>, truque da borda transparente no hover e Font Awesome.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">CSS GRID • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 03 -->
+            <a href="quiz3/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q3" style="--accent: #a3e635;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #03</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q3')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-users-gear"></i></div>
+                    <h3>Squad de T.I. & Imagens HTML</h3>
+                    <p>Múltiplas classes CSS, navegação interna por âncoras (<code>#id</code>), acessibilidade com <code>alt</code> e <code>object-fit</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">HTML5 • CSS3 • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 04 -->
+            <a href="quiz4/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q4" style="--accent: #ff0055;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #04 • BOSS</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q4')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-images"></i></div>
+                    <h3>Galeria & Custom Scrollbar</h3>
+                    <p>Desafio especial de 10 questões sobre <code>flex-wrap</code>, rolagem horizontal e personalização da barra <code>-webkit-scrollbar</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">CSS AVANÇADO • 10 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 05 -->
+            <a href="quiz5/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q5" style="--accent: #ff5e1a;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #05</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q5')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-sliders"></i></div>
+                    <h3>Slider & Estados Ativos CSS</h3>
+                    <p>Controle de exibição com <code>.active</code>, atributos personalizados <code>data-slide</code>, <code>transform: scale()</code> e <code>@keyframes</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">UI STATES • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 06 -->
+            <a href="quiz6/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="js" data-id="q6" style="--accent: #38bdf8;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #06</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q6')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fab fa-js"></i></div>
+                    <h3>Motor JavaScript do Slider</h3>
+                    <p>Manipulação do DOM com <code>querySelectorAll</code>, loops <code>forEach</code>, <code>classList</code>, eventos de clique e timer <code>setInterval</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">JAVASCRIPT • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 07 -->
+            <a href="quiz7/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="html-css" data-id="q7" style="--accent: #25D366;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #07</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q7')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-map-location-dot"></i></div>
+                    <h3>Formulários, Grid & Maps</h3>
+                    <p>Layout dividido <code>1fr 1fr</code>, validação nativa HTML5 (<code>required</code>, <code>email</code>, <code>tel</code>) e mapa com <code>&lt;iframe&gt;</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">FORMS & MAPS • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 08 -->
+            <a href="quiz8/index.html" target="_blank" rel="noopener noreferrer" class="mission-card" data-cat="js" data-id="q8" style="--accent: #ff4d6d;">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #08</span>
+                        <button type="button" class="check-done" title="Marcar como concluída" onclick="toggleConcluida(event, 'q8')"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-paper-plane"></i></div>
+                    <h3>Formulário VIP & EmailJS API</h3>
+                    <p>Bloqueio de reload com <code>preventDefault()</code>, captura de inputs, template <code>{{variaveis}}</code> e Promises <code>.then()/.catch()</code>.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">JS & API • 6 Qs</span>
+                    <span class="start-cta">Iniciar <i class="fas fa-arrow-up-right-from-square"></i></span>
+                </div>
+            </a>
+
+            <!-- TAREFA 09 (BLOQUEADA) -->
+            <div class="mission-card locked" data-cat="em-breve">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #09</span>
+                        <span class="locked-pill"><i class="fas fa-lock"></i> EM BREVE</span>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-code-branch"></i></div>
+                    <h3>Próxima Etapa do Projeto</h3>
+                    <p>Esta missão será desbloqueada na próxima aula. Continue evoluindo seu código da TechStore Pro!</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">BLOQUEADO</span>
+                    <span class="start-cta">Aguardando aula</span>
+                </div>
+            </div>
+
+            <!-- TAREFA 10 (BLOQUEADA) -->
+            <div class="mission-card locked" data-cat="em-breve">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #10</span>
+                        <span class="locked-pill"><i class="fas fa-lock"></i> EM BREVE</span>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                    <h3>Acabamento & Interatividade</h3>
+                    <p>Novos desafios de código e lógica estão sendo preparados para a reta final da nossa Landing Page.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">BLOQUEADO</span>
+                    <span class="start-cta">Aguardando aula</span>
+                </div>
+            </div>
+
+            <!-- TAREFA 11 (BLOQUEADA) -->
+            <div class="mission-card locked" data-cat="em-breve">
+                <div>
+                    <div class="card-top">
+                        <span class="mission-num">MISSÃO #11 • FINAL</span>
+                        <span class="locked-pill"><i class="fas fa-lock"></i> EM BREVE</span>
+                    </div>
+                    <div class="card-icon"><i class="fas fa-crown"></i></div>
+                    <h3>Desafio Final Full-Stack</h3>
+                    <p>O teste definitivo reunindo tudo o que construímos do zero até o deploy final do projeto.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="tech-tag">BLOQUEADO</span>
+                    <span class="start-cta">Aguardando aula</span>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="hub-footer">
+            <p>TechStore Pro Academy • Clique no ícone <strong>✓</strong> no canto de cada card para marcar as tarefas que você já finalizou.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Filtro por categoria
+        function filtrar(categoria, botao) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            botao.classList.add('active');
+
+            document.querySelectorAll('.mission-card').forEach(card => {
+                if (categoria === 'todos' || card.dataset.cat === categoria) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Salva no navegador do aluno quais missões ele já marcou como concluídas
+        function carregarProgresso() {
+            const concluidas = JSON.parse(localStorage.getItem('techstore_missoes') || '[]');
+            document.querySelectorAll('.mission-card[data-id]').forEach(card => {
+                if (concluidas.includes(card.dataset.id)) {
+                    card.classList.add('completed');
+                }
+            });
+            atualizarContador(concluidas.length);
+        }
+
+        function toggleConcluida(event, id) {
+            event.preventDefault(); // Impede abrir o link ao clicar apenas no botão de check
+            event.stopPropagation();
+
+            let concluidas = JSON.parse(localStorage.getItem('techstore_missoes') || '[]');
+            const card = document.querySelector(`.mission-card[data-id="${id}"]`);
+
+            if (concluidas.includes(id)) {
+                concluidas = concluidas.filter(item => item !== id);
+                card.classList.remove('completed');
+            } else {
+                concluidas.push(id);
+                card.classList.add('completed');
+            }
+
+            localStorage.setItem('techstore_missoes', JSON.stringify(concluidas));
+            atualizarContador(concluidas.length);
+        }
+
+        function atualizarContador(qtd) {
+            const totalDisponiveis = document.querySelectorAll('.mission-card[data-id]').length;
+            document.getElementById('contador-concluidas').textContent = `${qtd} / ${totalDisponiveis} CONCLUÍDAS`;
+        }
+
+        carregarProgresso();
+    </script>
+
+</body>
+</html>

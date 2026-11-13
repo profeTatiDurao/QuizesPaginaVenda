@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #08 - EmailJS, Promises & API</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-space: #070812;
+            --surface: #101223;
+            --card-bg: #161930;
+            --border-subtle: rgba(0, 187, 249, 0.22);
+            --coral: #ff4d6d;
+            --coral-glow: rgba(255, 77, 109, 0.4);
+            --sky: #00bbf9;
+            --sky-glow: rgba(0, 187, 249, 0.35);
+            --violet: #9b5de5;
+            --mint: #00f5d4;
+            --mint-glow: rgba(0, 245, 212, 0.35);
+            --amber: #fee440;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-space);
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(255, 77, 109, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(0, 187, 249, 0.14) 0%, transparent 45%),
+                radial-gradient(rgba(155, 93, 229, 0.12) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 30px 30px;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px 75px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 810px;
+            margin: 0 auto;
+            background: rgba(16, 18, 35, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 187, 249, 0.08);
+            position: relative;
+        }
+
+        /* Painel de Transmissão de Dados (Client -> API) */
+        .packet-tracker {
+            background: #090b17;
+            border: 1px solid rgba(255, 77, 109, 0.3);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 28px;
+            position: sticky;
+            top: 14px;
+            z-index: 100;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+        }
+
+        .packet-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .node-tag {
+            color: var(--sky);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .packet-counter {
+            color: var(--coral);
+        }
+
+        .transmission-line {
+            position: relative;
+            height: 8px;
+            background: #1c203d;
+            border-radius: 999px;
+            margin: 6px 12px;
+        }
+
+        .transmission-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--coral), var(--violet), var(--sky));
+            border-radius: 999px;
+            transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 12px var(--sky-glow);
+        }
+
+        .packet-drone {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            background: var(--coral);
+            color: #fff;
+            font-size: 0.78rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            box-shadow: 0 0 14px var(--coral-glow);
+            transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+
+        /* Cabeçalho */
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .api-pill {
+            display: inline-block;
+            background: rgba(155, 93, 229, 0.16);
+            color: #d8b4fe;
+            border: 1px solid var(--violet);
+            padding: 5px 15px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.35rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff 10%, var(--coral) 50%, var(--sky) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.03rem;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.55;
+        }
+
+        /* Animações dos Cards */
+        @keyframes packetSlide {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes errorBounce {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes validPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 187, 249, 0.16);
+            border-left: 5px solid var(--coral);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.28s ease;
+            opacity: 0;
+            animation: packetSlide 0.55s ease forwards;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.06s; }
+        .pergunta:nth-child(2) { animation-delay: 0.12s; }
+        .pergunta:nth-child(3) { animation-delay: 0.18s; }
+        .pergunta:nth-child(4) { animation-delay: 0.24s; }
+        .pergunta:nth-child(5) { animation-delay: 0.30s; }
+        .pergunta:nth-child(6) { animation-delay: 0.36s; }
+
+        .pergunta:hover {
+            border-color: rgba(0, 187, 249, 0.55);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--mint);
+            border-left-color: var(--mint);
+            box-shadow: 0 0 24px var(--mint-glow);
+            animation: validPulse 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--coral);
+            border-left-color: var(--coral);
+            box-shadow: 0 0 24px var(--coral-glow);
+            animation: errorBounce 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--amber);
+            border-left-color: var(--amber);
+        }
+
+        .enunciado {
+            font-size: 1.12rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 187, 249, 0.13);
+            color: #7dd3fc;
+            border: 1px solid rgba(0, 187, 249, 0.28);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.88em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0d0f1f;
+            border: 1px solid #232747;
+            padding: 13px 16px;
+            border-radius: 11px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
+        label.opcao:hover {
+            background: #191d3b;
+            border-color: var(--sky);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--coral);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Editor JS */
+        .js-editor {
+            background: #06070f;
+            border: 1px solid #252a4d;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            line-height: 1.95;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .editor-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--coral);
+            border-bottom: 1px solid #161930;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .j-kw { color: #c084fc; }
+        .j-fn { color: #00bbf9; }
+        .j-str { color: #fee440; }
+        .j-com { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #14172e;
+            border: 2px dashed var(--coral);
+            color: var(--amber);
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            width: 100px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--sky);
+            background: #1d2142;
+            box-shadow: 0 0 14px var(--sky-glow);
+            color: #ffffff;
+        }
+
+        /* Botão Principal */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-dispatch {
+            background: linear-gradient(135deg, var(--coral), var(--violet) 55%, var(--sky));
+            background-size: 200% auto;
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.22rem;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px var(--coral-glow);
+            transition: all 0.35s ease;
+        }
+
+        .btn-dispatch:hover {
+            background-position: right center;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 38px var(--sky-glow);
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(0, 245, 212, 0.12);
+            color: #5eead4;
+            border: 1px solid rgba(0, 245, 212, 0.35);
+        }
+
+        .errado {
+            background: rgba(255, 77, 109, 0.14);
+            color: #fda4af;
+            border: 1px solid rgba(255, 77, 109, 0.35);
+        }
+
+        .neutro {
+            background: rgba(254, 228, 64, 0.12);
+            color: #fef08a;
+            border: 1px solid rgba(254, 228, 64, 0.35);
+        }
+
+        /* Resultado Final */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #171a33, #0b0d1c);
+            border: 2px solid var(--sky);
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 35px var(--sky-glow);
+            animation: packetSlide 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #090b17;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--sky);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #161930;
+            color: var(--sky);
+            border: 1px solid var(--sky);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--sky);
+            color: #070812;
+        }
+
+        #dispatch-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.85rem; }
+            .packet-labels { font-size: 0.72rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="dispatch-canvas"></canvas>
+
+    <div class="container">
+        <!-- Rastreador de Pacote API -->
+        <div class="packet-tracker">
+            <div class="packet-labels">
+                <span class="node-tag">💻 CLIENTE (FORM)</span>
+                <span class="packet-counter" id="packet-status">PACOTE: 0% CARREGADO</span>
+                <span class="node-tag">📧 EMAILJS API</span>
+            </div>
+            <div class="transmission-line">
+                <div class="transmission-fill" id="packet-fill"></div>
+                <div class="packet-drone" id="packet-drone">📩</div>
+            </div>
+        </div>
+
+        <header class="quiz-header">
+            <span class="api-pill">⚡ MÓDULO 08 // DISPARO DE E-MAILS & PROMISES</span>
+            <h1>Formulário VIP & EmailJS API</h1>
+            <p class="subtitulo">
+                Domine o fluxo completo de envio sem recarregar a página: <code>preventDefault()</code>, captura de inputs, variáveis <code>{{template}}</code> e respostas assíncronas com <code>.then()</code> e <code>.catch()</code>!
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🛑 Logo na segunda linha do evento <code>submit</code>, chamamos <code>event.preventDefault()</code>. O que acontece se esquecermos de colocar esse comando?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> O navegador recarrega (atualiza) a página inteira imediatamente ao clicar no botão, interrompendo o envio do JavaScript para o EmailJS.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> O formulário fica bloqueado e o usuário não consegue digitar nada nos campos.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> O e-mail é enviado 10 vezes seguidas para o cliente.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> A biblioteca EmailJS apaga os dados do usuário antes de enviar.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 📥 [DESAFIO DE CÓDIGO] Depois de encontrar o campo com <code>form.querySelector('input[type="text"]')</code>, qual propriedade usamos no final para pegar o texto que o cliente digitou?</p>
+                <div class="js-editor">
+                    <div class="editor-top">
+                        <span>script.js — Captura de Dados do Formulário</span>
+                        <span>DOM</span>
+                    </div>
+                    <span class="j-kw">const</span> nome = form.<span class="j-fn">querySelector</span>(<span class="j-str">'input[type="text"]'</span>).<input type="text" class="code-input" id="q2_input" placeholder="propriedade" autocomplete="off">;<br>
+                    <span class="j-kw">const</span> email = form.<span class="j-fn">querySelector</span>(<span class="j-str">'input[type="email"]'</span>).<span class="j-fn">value</span>;
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🧩 No template do e-mail da TecStore escrevemos <code>Olá {{nome}}</code> e <code>📲 WhatsApp: {{whatsapp}}</code>, enquanto no JS criamos <code>const parametros = { nome: nome, email: email, whatsapp: whatsapp }</code>. Por que os nomes das chaves precisam ser idênticos?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Porque o JavaScript só aceita variáveis escritas em português.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Para o EmailJS saber exatamente qual dado do objeto <code>parametros</code> deve substituir cada etiqueta <code>{{...}}</code> dentro do texto do e-mail.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Porque chaves duplas <code>{{}}</code> são um comando nativo do HTML5 para criar tabelas.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Se forem diferentes, o navegador muda automaticamente a cor do e-mail para vermelho.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🌐 O comando <code>emailjs.send(...)</code> retorna uma <em>Promise</em> (promessa), seguida de <code>.then(() => { ... })</code> e <code>.catch((error) => { ... })</code>. Quando o bloco <code>.catch()</code> entra em ação?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> Sempre que o e-mail for entregue com sucesso na caixa de entrada do cliente.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Antes mesmo do usuário clicar no botão "Se inscrever".</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> Quando ocorre alguma falha no envio (como queda de internet ou ID inválido), permitindo exibir um aviso amigável em vez de travar o site.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Para apagar a conta do usuário no Gmail caso ele erre a senha.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) 🧹 [DESAFIO DE CÓDIGO] Dentro do <code>.then()</code>, logo após avisar que o cadastro foi enviado com sucesso, chamamos um método nativo do formulário para limpar todos os campos preenchidos. Complete o código:</p>
+                <div class="js-editor">
+                    <div class="editor-top">
+                        <span>script.js — Limpeza Pós-Envio</span>
+                        <span>DOM</span>
+                    </div>
+                    .<span class="j-fn">then</span>(() => {<br>
+                    &nbsp;&nbsp;<span class="j-fn">alert</span>(<span class="j-str">'Sua inscrição foi enviada com sucesso!'</span>);<br>
+                    &nbsp;&nbsp;form.<input type="text" class="code-input" id="q5_input" placeholder="método" autocomplete="off">(); <span class="j-com">// Limpa todos os inputs do formulário</span><br>
+                    })
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) 🔑 Na chamada <code>emailjs.send('service_ogjib17', 'template_p284j9h', parametros)</code>, passamos 3 informações dentro dos parênteses. O que representam os dois primeiros códigos em texto?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> O e-mail do remetente e a senha secreta do Gmail da empresa.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> O <strong>Service ID</strong> (qual servidor de e-mail vai disparar, como o Gmail) e o <strong>Template ID</strong> (qual modelo de mensagem será usado).</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> O nome do arquivo HTML e o nome do arquivo CSS da Landing Page.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> O CEP da loja e o número de telefone do suporte técnico.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-dispatch" onclick="corrigir()">📨 Disparar Payload & Ver Nota</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        // Atualiza a viagem do pacote de dados (0% a 100%)
+        function atualizarPacote() {
+            const feitas = [
+                !!document.querySelector('input[name="q1"]:checked'),
+                document.getElementById("q2_input").value.trim() !== "",
+                !!document.querySelector('input[name="q3"]:checked'),
+                !!document.querySelector('input[name="q4"]:checked'),
+                document.getElementById("q5_input").value.trim() !== "",
+                !!document.querySelector('input[name="q6"]:checked')
+            ].filter(Boolean).length;
+
+            const pct = Math.round((feitas / 6) * 100);
+            document.getElementById("packet-fill").style.width = pct + "%";
+            document.getElementById("packet-drone").style.left = pct + "%";
+            document.getElementById("packet-status").textContent = `PACOTE: ${pct}% CARREGADO`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarPacote);
+        document.getElementById("quizForm").addEventListener("input", atualizarPacote);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "value" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "radio", resposta: "c" },
+                q5: { tipo: "text",  resposta: "reset" },
+                q6: { tipo: "radio", resposta: "b" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(/^\./, "").replace(/[();'"]/g, "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Payload incompleto!</b> Você deixou essa questão sem resposta.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Status 200 OK!</b> Resposta exata.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Status 400 Bad Request!</b> A alternativa certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        feedback.innerHTML = `❌ <b>Erro de sintaxe!</b> O código exato era: <code>${item.resposta}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🚀 API MASTER // 200 OK! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#00f5d4;">Disparo perfeito! Você domina integração de formulários, objetos e Promises.</span>`;
+                dispararEnvio();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `⚡ CONEXÃO ESTÁVEL! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#94a3b8;">Mandou muito bem! Dá uma olhada nos detalhes marcados acima para gabaritar.</span>`;
+                dispararEnvio();
+            } else {
+                areaResultado.innerHTML = `📡 ERRO DE REDE (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#fda4af;">Leia os logs em vermelho acima, ajuste seu script e tente disparar novamente!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial: Rajada de pacotes de dados luminosos voando pela tela
+        function dispararEnvio() {
+            const canvas = document.getElementById("dispatch-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#ff4d6d", "#00bbf9", "#00f5d4", "#fee440", "#9b5de5"];
+            const pacotes = [];
+
+            for (let i = 0; i < 75; i++) {
+                pacotes.push({
+                    x: Math.random() * canvas.width * 0.3,
+                    y: canvas.height * 0.6 + (Math.random() - 0.5) * 260,
+                    w: Math.random() * 14 + 8,
+                    h: Math.random() * 9 + 5,
+                    vx: Math.random() * 14 + 7,
+                    vy: (Math.random() - 0.5) * 6,
+                    color: cores[Math.floor(Math.random() * cores.length)],
+                    alpha: 1,
+                    rot: (Math.random() - 0.5) * 0.4
+                });
+            }
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let ativos = false;
+
+                pacotes.forEach(p => {
+                    if (p.alpha > 0.02 && p.x < canvas.width + 40) {
+                        ativos = true;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.alpha -= 0.012;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, p.alpha);
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot);
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = p.color;
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                        ctx.restore();
+                    }
+                });
+
+                if (ativos) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>
