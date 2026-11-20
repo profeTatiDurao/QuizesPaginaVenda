@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenge #09 - Footer, Social Icons & Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-midnight: #060714;
+            --surface: #0e1026;
+            --card-bg: #141736;
+            --border-subtle: rgba(34, 211, 238, 0.22);
+            --indigo: #6366f1;
+            --indigo-glow: rgba(99, 102, 241, 0.45);
+            --turquoise: #22d3ee;
+            --turquoise-glow: rgba(34, 211, 238, 0.35);
+            --rose: #fb7185;
+            --rose-glow: rgba(251, 113, 133, 0.35);
+            --emerald: #34d399;
+            --emerald-glow: rgba(52, 211, 153, 0.35);
+            --amber: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-midnight);
+            background-image: 
+                radial-gradient(circle at 18% 12%, rgba(99, 102, 241, 0.16) 0%, transparent 45%),
+                radial-gradient(circle at 82% 88%, rgba(34, 211, 238, 0.14) 0%, transparent 45%),
+                linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px 75px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 810px;
+            margin: 0 auto;
+            background: rgba(14, 16, 38, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-bottom: 4px solid var(--turquoise);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 40px rgba(99, 102, 241, 0.1);
+            position: relative;
+        }
+
+        /* Blueprint Bar Superior */
+        .blueprint-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: #08091a;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 28px;
+            position: sticky;
+            top: 14px;
+            z-index: 100;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+        }
+
+        .hud-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--turquoise);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-tag span.dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--turquoise);
+            box-shadow: 0 0 10px var(--turquoise);
+        }
+
+        .blueprint-slots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bp-slot {
+            width: 28px;
+            height: 10px;
+            border-radius: 4px;
+            background: #1b1f47;
+            border: 1px solid #2e3473;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bp-slot.active {
+            background: linear-gradient(90deg, var(--indigo), var(--turquoise));
+            border-color: #ffffff;
+            box-shadow: 0 0 12px var(--turquoise-glow);
+            transform: scaleY(1.25);
+        }
+
+        .hud-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--amber);
+        }
+
+        /* Cabeçalho */
+        header.quiz-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .mission-pill {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.18);
+            color: #a5b4fc;
+            border: 1px solid var(--indigo);
+            padding: 5px 15px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.35rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff 15%, var(--turquoise) 55%, var(--indigo) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.03rem;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.55;
+        }
+
+        /* Animações dos Cards */
+        @keyframes slideReveal {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes popSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--card-bg);
+            border: 1px solid rgba(34, 211, 238, 0.16);
+            border-left: 5px solid var(--indigo);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.28s ease;
+            opacity: 0;
+            animation: slideReveal 0.55s ease forwards;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.06s; }
+        .pergunta:nth-child(2) { animation-delay: 0.12s; }
+        .pergunta:nth-child(3) { animation-delay: 0.18s; }
+        .pergunta:nth-child(4) { animation-delay: 0.24s; }
+        .pergunta:nth-child(5) { animation-delay: 0.30s; }
+        .pergunta:nth-child(6) { animation-delay: 0.36s; }
+
+        .pergunta:hover {
+            border-color: rgba(34, 211, 238, 0.55);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .pergunta.card-correto {
+            border-color: var(--emerald);
+            border-left-color: var(--emerald);
+            box-shadow: 0 0 24px var(--emerald-glow);
+            animation: popSuccess 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            border-color: var(--rose);
+            border-left-color: var(--rose);
+            box-shadow: 0 0 24px var(--rose-glow);
+            animation: shakeError 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            border-color: var(--amber);
+            border-left-color: var(--amber);
+        }
+
+        .enunciado {
+            font-size: 1.12rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(34, 211, 238, 0.13);
+            color: #67e8f9;
+            border: 1px solid rgba(34, 211, 238, 0.28);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.88em;
+        }
+
+        /* Opções de Múltipla Escolha */
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0c0e24;
+            border: 1px solid #222654;
+            padding: 13px 16px;
+            border-radius: 11px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
+        label.opcao:hover {
+            background: #171b42;
+            border-color: var(--turquoise);
+            transform: translateX(6px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--turquoise);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Editor de Código */
+        .code-window {
+            background: #060712;
+            border: 1px solid #252959;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            line-height: 1.95;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .window-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--turquoise);
+            border-bottom: 1px solid #16193b;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .c-sel { color: #818cf8; }
+        .c-prop { color: #22d3ee; }
+        .c-val { color: #fbbf24; }
+        .c-tag { color: #38bdf8; }
+        .c-com { color: #64748b; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #131638;
+            border: 2px dashed var(--turquoise);
+            color: var(--amber);
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            width: 125px;
+            text-align: center;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: var(--indigo);
+            background: #1c204f;
+            box-shadow: 0 0 14px var(--turquoise-glow);
+            color: #ffffff;
+        }
+
+        /* Botão Principal */
+        .actions {
+            text-align: center;
+            margin-top: 32px;
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, var(--indigo), var(--turquoise));
+            color: #060714;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.22rem;
+            padding: 16px 44px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 28px var(--indigo-glow);
+            transition: all 0.28s ease;
+        }
+
+        .btn-finish:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 38px var(--turquoise-glow);
+            color: #ffffff;
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 14px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .correto {
+            background: rgba(52, 211, 153, 0.13);
+            color: #6ee7b7;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+        }
+
+        .errado {
+            background: rgba(251, 113, 133, 0.14);
+            color: #fda4af;
+            border: 1px solid rgba(251, 113, 133, 0.35);
+        }
+
+        .neutro {
+            background: rgba(251, 191, 36, 0.13);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        /* Resultado Final */
+        #resultado {
+            margin-top: 30px;
+            padding: 26px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #16193b, #0a0c1f);
+            border: 2px solid var(--turquoise);
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 0 35px var(--turquoise-glow);
+            animation: slideReveal 0.5s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #08091a;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--turquoise);
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copy {
+            background: #141736;
+            color: var(--turquoise);
+            border: 1px solid var(--turquoise);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--turquoise);
+            color: #060714;
+        }
+
+        #holo-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 720px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.85rem; }
+            .blueprint-hud { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="holo-canvas"></canvas>
+
+    <div class="container">
+        <!-- Blueprint HUD -->
+        <div class="blueprint-hud">
+            <div class="hud-tag">
+                <span class="dot"></span>
+                <span>MÓDULO 09 // FOOTER & LAYOUT</span>
+            </div>
+            <div class="blueprint-slots">
+                <div class="bp-slot" id="slot-1"></div>
+                <div class="bp-slot" id="slot-2"></div>
+                <div class="bp-slot" id="slot-3"></div>
+                <div class="bp-slot" id="slot-4"></div>
+                <div class="bp-slot" id="slot-5"></div>
+                <div class="bp-slot" id="slot-6"></div>
+            </div>
+            <div class="hud-counter" id="hud-count">0 / 6</div>
+        </div>
+
+        <header class="quiz-header">
+            <span class="mission-pill">🏁 RETA FINAL // ESTRUTURA DO RODAPÉ</span>
+            <h1>Footer, Social Icons & Copyright</h1>
+            <p class="subtitulo">
+                Teste seus conhecimentos sobre espaçamentos abreviados (<code>padding</code>), colunas responsivas no rodapé, ícones de marcas e entidades especiais do HTML5!
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 📏 Na regra do <code>footer</code>, escrevemos <code>padding: 4rem 0 2rem;</code> usando exatamente <strong>3 valores</strong>. Qual é a ordem que o navegador aplica esses espaçamentos internos?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> <code>4rem</code> em cima, <code>0</code> nas laterais (esquerda e direita) e <code>2rem</code> embaixo.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> <code>4rem</code> na esquerda, <code>0</code> no meio e <code>2rem</code> na direita.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> <code>4rem</code> em todos os lados, ignorando o <code>0</code> e o <code>2rem</code>.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> <code>4rem</code> no celular, <code>0</code> no tablet e <code>2rem</code> no computador.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 🎈 [DESAFIO DE CÓDIGO] Quando o usuário passa o mouse nos ícones das redes sociais (<code>.social-icons a:hover</code>), eles ganham a cor principal e "flutuam" <code>-5px</code> para cima. Complete a função de <code>transform</code>:</p>
+                <div class="code-window">
+                    <div class="window-top">
+                        <span>style.css — Efeito Hover Social</span>
+                        <span>CSS3</span>
+                    </div>
+                    <span class="c-sel">.social-icons a:hover</span> {<br>
+                    &nbsp;&nbsp;<span class="c-prop">background-color</span>: <span class="c-val">var(--primary)</span>;<br>
+                    &nbsp;&nbsp;<span class="c-prop">transform</span>: <input type="text" class="code-input" id="q2_input" placeholder="função" autocomplete="off">(<span class="c-val">-5px</span>); <span class="c-com">/* Move 5px para cima */</span><br>
+                    }
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🏷️ Observe as classes do Font Awesome no rodapé: nos ícones sociais usamos <code>class="fab fa-instagram"</code>, mas no contato usamos <code>class="fas fa-phone"</code>. Por que o prefixo muda de <code>fas</code> para <code>fab</code>?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> Porque <code>fab</code> deixa o ícone redondo e <code>fas</code> deixa quadrado.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> Porque <code>fab</code> significa <strong>Font Awesome Brands</strong> (logotipos de marcas e redes sociais), enquanto <code>fas</code> é <strong>Solid</strong> (ícones gerais).</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> Porque <code>fab</code> só funciona dentro da tag <code>&lt;footer&gt;</code>.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Foi um erro de digitação, mas o navegador corrige automaticamente.</label>
+            </div>
+
+            <!-- Pergunta 4 -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 📱 No <code>.footer-content</code> temos 4 colunas (<code>.footer-column</code>) com <code>grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));</code>. O que acontece automaticamente quando o site é aberto em um celular estreito?</p>
+                <label class="opcao"><input type="radio" name="q4" value="a"> As 4 colunas ficam espremidas lado a lado com letras minúsculas.</label>
+                <label class="opcao"><input type="radio" name="q4" value="b"> Como não cabem duas colunas de <code>250px</code> lado a lado, o CSS Grid empilha as 4 colunas uma embaixo da outra sem precisar de <code>@media</code>.</label>
+                <label class="opcao"><input type="radio" name="q4" value="c"> As 3 últimas colunas somem e só aparece a logo da TechStore.</label>
+                <label class="opcao"><input type="radio" name="q4" value="d"> Cria uma barra de rolagem horizontal no rodapé.</label>
+            </div>
+
+            <!-- Pergunta 5 (Completar Código) -->
+            <div class="pergunta" id="q5box">
+                <p class="enunciado">5) ©️ [DESAFIO DE CÓDIGO] Na área de direitos autorais (<code>.copyright</code>), usamos uma <em>HTML Entity</em> para exibir o símbolo <code>©</code> sem risco de bug de acentuação. Complete o código da entidade abaixo:</p>
+                <div class="code-window">
+                    <div class="window-top">
+                        <span>index.html — Linha de Copyright</span>
+                        <span>HTML5</span>
+                    </div>
+                    <span class="c-tag">&lt;div</span> <span class="c-prop">class</span>=<span class="c-val">"copyright"</span><span class="c-tag">&gt;</span><br>
+                    &nbsp;&nbsp;<span class="c-tag">&lt;p&gt;</span>&amp;<input type="text" class="code-input" id="q5_input" placeholder="entidade" autocomplete="off" style="width: 90px;">; 2023 TechStore Pro - Todos os direitos reservados.<span class="c-tag">&lt;/p&gt;</span><br>
+                    <span class="c-tag">&lt;/div&gt;</span>
+                </div>
+            </div>
+
+            <!-- Pergunta 6 -->
+            <div class="pergunta" id="q6box">
+                <p class="enunciado">6) ➖ Na classe <code>.copyright</code>, combinamos <code>border-top: 1px solid #495057;</code> com <code>padding-top: 2rem;</code>. Qual é o efeito visual dessa dupla no rodapé?</p>
+                <label class="opcao"><input type="radio" name="q6" value="a"> Desenha uma linha divisória sutil acima dos créditos e cria um espaço interno de <code>2rem</code> para o texto não encostar na linha.</label>
+                <label class="opcao"><input type="radio" name="q6" value="b"> Cria uma borda colorida em volta de todas as letras do parágrafo.</label>
+                <label class="opcao"><input type="radio" name="q6" value="c"> Esconde a linha de copyright quando o usuário rola até o final da página.</label>
+                <label class="opcao"><input type="radio" name="q6" value="d"> Centraliza os ícones das redes sociais no meio da tela.</label>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-finish" onclick="corrigir()">🏁 Validar Rodapé & Ver Nota</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        function atualizarBlueprint() {
+            const feitas = [
+                !!document.querySelector('input[name="q1"]:checked'),
+                document.getElementById("q2_input").value.trim() !== "",
+                !!document.querySelector('input[name="q3"]:checked'),
+                !!document.querySelector('input[name="q4"]:checked'),
+                document.getElementById("q5_input").value.trim() !== "",
+                !!document.querySelector('input[name="q6"]:checked')
+            ];
+
+            let totalFeitas = 0;
+            feitas.forEach((ok, idx) => {
+                const slot = document.getElementById("slot-" + (idx + 1));
+                if (ok) {
+                    slot.classList.add("active");
+                    totalFeitas++;
+                } else {
+                    slot.classList.remove("active");
+                }
+            });
+
+            document.getElementById("hud-count").textContent = `${totalFeitas} / 6`;
+        }
+
+        document.getElementById("quizForm").addEventListener("change", atualizarBlueprint);
+        document.getElementById("quizForm").addEventListener("input", atualizarBlueprint);
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "translatey" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "radio", resposta: "b" },
+                q5: { tipo: "text",  resposta: "copy" },
+                q6: { tipo: "radio", resposta: "a" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else if (item.tipo === "text") {
+                    const inputEl = document.getElementById(q + "_input");
+                    const valorLimpo = inputEl.value.trim().toLowerCase().replace(/[&();]/g, "");
+                    respostaAluno = valorLimpo === "" ? "nao_respondeu" : valorLimpo;
+                    acertou = valorLimpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "⚠️ <b>Bloco vazio!</b> Você deixou essa questão sem resposta.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "✅ <b>Layout finalizado!</b> Resposta exata.";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let textoCorreto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                textoCorreto = inp.parentNode.innerHTML.replace(/<input[^>]*>/, "").trim();
+                            }
+                        });
+                        feedback.innerHTML = `❌ <b>Desalinhamento detectado!</b> A resposta certa era:<br>👉 ${textoCorreto}`;
+                    } else {
+                        const exibicao = q === "q2" ? "translateY" : "copy";
+                        feedback.innerHTML = `❌ <b>Código incorreto!</b> O valor exato era: <code>${exibicao}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🏆 LANDING PAGE CONCLUÍDA! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#22d3ee;">Do Header ao Footer sem nenhum bug! Você domina a estrutura completa.</span>`;
+                dispararHolograma();
+            } else if (pontos >= 4) {
+                areaResultado.innerHTML = `⚡ QUASE NO DEPLOY FINAL! (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#94a3b8;">Mandou muito bem! Revise os pontos marcados acima para fechar 100%.</span>`;
+                dispararHolograma();
+            } else {
+                areaResultado.innerHTML = `🔧 AJUSTE NO RODAPÉ (${pontos}/${total})<br><span style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; color:#fda4af;">Leia os feedbacks em vermelho acima, corrija e valide novamente!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const urlBase = window.location.origin + window.location.pathname;
+            const link = urlBase + "?" + params.join("&");
+
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado para enviar ao professor:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copy" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copy");
+                btn.textContent = "✅ Link Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2500);
+            });
+        }
+
+        // Efeito especial: Cristais holográficos flutuantes
+        function dispararHolograma() {
+            const canvas = document.getElementById("holo-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#22d3ee", "#6366f1", "#34d399", "#fbbf24", "#a5b4fc"];
+            const cristais = Array.from({ length: 75 }, () => ({
+                x: Math.random() * canvas.width,
+                y: canvas.height + Math.random() * 100,
+                size: Math.random() * 8 + 4,
+                vy: -(Math.random() * 5 + 2.5),
+                vx: (Math.random() - 0.5) * 2.5,
+                rot: Math.random() * Math.PI * 2,
+                vRot: (Math.random() - 0.5) * 0.1,
+                color: cores[Math.floor(Math.random() * cores.length)],
+                alpha: 1
+            }));
+
+            function animar() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let ativos = false;
+
+                cristais.forEach(c => {
+                    if (c.alpha > 0.02) {
+                        ativos = true;
+                        c.x += c.vx;
+                        c.y += c.vy;
+                        c.rot += c.vRot;
+                        c.alpha -= 0.011;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, c.alpha);
+                        ctx.translate(c.x, c.y);
+                        ctx.rotate(c.rot);
+                        ctx.strokeStyle = c.color;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(-c.size / 2, -c.size / 2, c.size, c.size);
+                        ctx.restore();
+                    }
+                });
+
+                if (ativos) {
+                    requestAnimationFrame(animar);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animar();
+        }
+    </script>
+
+</body>
+</html>
